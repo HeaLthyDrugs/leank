@@ -63,18 +63,18 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     }
 
     console.log('[RoomView] Screen share started');
-    
+
     if (localStream) {
       const videoTrack = screenStream.getVideoTracks()[0];
       const sender = localStream.getVideoTracks()[0];
-      
+
       if (sender) {
         localStream.removeTrack(sender);
         sender.stop();
       }
-      
+
       localStream.addTrack(videoTrack);
-      
+
       videoTrack.onended = async () => {
         console.log('[RoomView] Screen share ended');
         await startMedia(true, true);
@@ -83,35 +83,8 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   };
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative">
-      <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-lg px-4 py-2 rounded-lg text-white space-y-1">
-        <p className="text-sm font-semibold">Room: {roomId.slice(0, 8)}</p>
-        <p className="text-xs opacity-70">{isConnected ? `${peers.size} peer(s) connected` : 'Connecting...'}</p>
-        {peers.size > 0 && (
-          <div className="text-xs mt-2 space-y-1">
-            <p className="font-semibold">Connected Peers:</p>
-            {Array.from(peers.values()).map(peer => (
-              <p key={peer.id} className="opacity-70">• {peer.id.slice(0, 8)}</p>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className={`h-full ${showChat ? 'grid grid-cols-[1fr_400px]' : ''}`}>
-        <VideoGrid localStream={localStream} peers={peers} isVideoEnabled={isVideoEnabled} />
-        
-        {showChat && (
-          <div className="h-full border-l border-gray-700">
-            <ChatPanel 
-              messages={messages} 
-              onSendMessage={sendMessage}
-              transfers={transfers}
-              onSendFile={sendFile}
-            />
-          </div>
-        )}
-      </div>
-
+    <div className="h-screen w-screen bg-white flex flex-col-reverse md:flex-row overflow-hidden">
+      {/* 1. Control Bar (Sidebar on Desktop, Bottom Bar on Mobile) */}
       <ControlBar
         isAudioEnabled={isAudioEnabled}
         isVideoEnabled={isVideoEnabled}
@@ -121,6 +94,42 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
         onToggleChat={() => setShowChat(!showChat)}
         onScreenShare={handleScreenShare}
       />
+
+      {/* 2. Main Content Area */}
+      <div className="flex-1 flex flex-col relative overflow-hidden">
+        {/* Header / Info Bar */}
+        <div className="absolute top-0 left-0 right-0 z-10 p-4 pointer-events-none">
+          <div className="inline-block bg-white border-2 border-black px-4 py-2 pointer-events-auto shadow-sm">
+            <p className="text-sm font-bold uppercase tracking-wide text-black">
+              ROOM: {roomId.slice(0, 8)}
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <div className={`w-2 h-2 ${isConnected ? 'bg-green-600' : 'bg-yellow-400'} border border-black`}></div>
+              <p className="text-xs font-mono text-gray-600">
+                {isConnected ? `${peers.size} PEERS` : 'CONNECTING...'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Video Grid */}
+        <div className="flex-1 overflow-hidden bg-gray-50 relative">
+          <VideoGrid localStream={localStream} peers={peers} isVideoEnabled={isVideoEnabled} />
+        </div>
+      </div>
+
+      {/* 3. Chat Panel (Right Sidebar on Desktop, Overlay on Mobile) */}
+      {showChat && (
+        <div className="absolute inset-0 z-30 md:static md:w-[400px] md:border-l-2 md:border-black bg-white flex flex-col">
+          <ChatPanel
+            messages={messages}
+            onSendMessage={sendMessage}
+            transfers={transfers}
+            onSendFile={sendFile}
+            onClose={() => setShowChat(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

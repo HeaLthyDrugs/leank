@@ -27,7 +27,7 @@ export function VideoGrid({ localStream, peers, isVideoEnabled }: VideoGridProps
 
   const peerArray = Array.from(peers.values());
   const totalVideos = 1 + peerArray.length;
-  
+
   const getGridClass = () => {
     if (totalVideos === 1) return 'grid-cols-1';
     if (totalVideos === 2) return 'grid-cols-2';
@@ -38,7 +38,7 @@ export function VideoGrid({ localStream, peers, isVideoEnabled }: VideoGridProps
 
   return (
     <div className={`grid gap-4 h-full p-4 ${getGridClass()}`}>
-      <div className="relative bg-gray-900 rounded-lg overflow-hidden">
+      <div className="relative border-2 border-black bg-white">
         {isVideoEnabled && localStream ? (
           <video
             ref={localVideoRef}
@@ -48,13 +48,13 @@ export function VideoGrid({ localStream, peers, isVideoEnabled }: VideoGridProps
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-800">
-            <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
-              You
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <div className="w-24 h-24 border-2 border-black bg-black flex items-center justify-center text-white text-3xl font-bold">
+              YOU
             </div>
           </div>
         )}
-        <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-white text-sm">
+        <div className="absolute bottom-0 left-0 bg-black text-white text-xs px-2 py-1 font-mono uppercase">
           You {localStream ? '(Live)' : '(No Stream)'}
         </div>
       </div>
@@ -78,7 +78,7 @@ function PeerVideo({ peer }: { peer: Peer }) {
   }, [peer.stream, peer.id]);
 
   return (
-    <div className="relative bg-gray-900 rounded-lg overflow-hidden">
+    <div className="relative border-2 border-black bg-white">
       {peer.stream ? (
         <video
           ref={videoRef}
@@ -87,13 +87,13 @@ function PeerVideo({ peer }: { peer: Peer }) {
           className="w-full h-full object-cover"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gray-800">
-          <div className="w-24 h-24 rounded-full bg-purple-600 flex items-center justify-center text-white text-3xl font-bold">
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          <div className="w-24 h-24 border-2 border-black bg-white flex items-center justify-center text-black text-3xl font-bold">
             {peer.id.slice(0, 2).toUpperCase()}
           </div>
         </div>
       )}
-      <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-white text-sm">
+      <div className="absolute bottom-0 left-0 bg-black text-white text-xs px-2 py-1 font-mono uppercase">
         Peer {peer.id.slice(0, 6)}
       </div>
     </div>

@@ -26,57 +26,50 @@ export default function Home() {
   const handleJoinRoom = () => {
     if (joinRoomId.trim()) {
       let roomIdToJoin = joinRoomId.trim();
-      
+
       if (roomIdToJoin.includes('/lobby/')) {
         roomIdToJoin = roomIdToJoin.split('/lobby/')[1];
       } else if (roomIdToJoin.includes('?room=')) {
         roomIdToJoin = roomIdToJoin.split('?room=')[1];
       }
-      
+
       router.push(`/lobby/${roomIdToJoin}`);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <Video size={48} className="text-blue-600" />
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+      <div className="max-w-xl w-full">
+        <div className="text-center mb-16">
+          <div className="flex items-center justify-center mb-6">
+            <div className="bg-black p-3">
+              <Video size={48} className="text-white" />
+            </div>
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">LeanK</h1>
-          <p className="text-xl text-gray-600">Secure P2P Video Calls, Chat & File Sharing</p>
+          <h1 className="text-6xl font-black text-black mb-4 tracking-tighter uppercase">LeanK</h1>
+          <p className="text-lg text-gray-600 font-mono tracking-wide">P2P SECURE COMMUNICATION</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8">
-          <div>
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Users size={24} />
-              Start a New Room
+        <div className="bg-white border-2 border-black p-0">
+          <div className="p-8 border-b-2 border-black bg-gray-50">
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-3 uppercase tracking-wider">
+              <Users size={20} />
+              New Session
             </h2>
             <Button onClick={handleCreateRoom} className="w-full" size="lg">
-              Create Room
+              Start Room
             </Button>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">OR</span>
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Join Existing Room</h2>
-            <div className="space-y-3">
+          <div className="p-8">
+            <h2 className="text-xl font-bold mb-6 uppercase tracking-wider">Join Session</h2>
+            <div className="space-y-4">
               <input
                 type="text"
                 value={joinRoomId}
                 onChange={(e) => setJoinRoomId(e.target.value)}
-                placeholder="Enter room ID or paste room link"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                placeholder="ENTER ROOM ID"
+                className="w-full px-6 py-4 border-2 border-gray-300 focus:border-black outline-none text-lg font-mono placeholder:text-gray-400 focus:bg-gray-50 transition-colors"
                 onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
               />
               <Button onClick={handleJoinRoom} variant="secondary" className="w-full" size="lg">
@@ -86,8 +79,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-8 text-center text-sm text-gray-600">
-          <p>🔒 End-to-end encrypted • No data stored • Peer-to-peer connection</p>
+        <div className="mt-12 text-center text-xs font-mono text-gray-400 uppercase tracking-widest">
+          <p>End-to-end encrypted • No data stored • P2P</p>
         </div>
       </div>
     </div>

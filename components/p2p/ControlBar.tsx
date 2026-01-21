@@ -13,6 +13,8 @@ interface ControlBarProps {
   onScreenShare: () => void;
 }
 
+import { Tooltip } from '@/components/ui/Tooltip';
+
 export function ControlBar({
   isAudioEnabled,
   isVideoEnabled,
@@ -24,45 +26,58 @@ export function ControlBar({
 }: ControlBarProps) {
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur-lg rounded-full px-6 py-4 flex items-center gap-4 shadow-2xl">
-      <button
-        onClick={onToggleAudio}
-        className={`p-3 rounded-full transition-all ${
-          isAudioEnabled ? 'bg-gray-700 hover:bg-gray-600' : 'bg-red-600 hover:bg-red-700'
-        }`}
-      >
-        {isAudioEnabled ? <Mic size={24} className="text-white" /> : <MicOff size={24} className="text-white" />}
-      </button>
+    <div className="flex bg-white z-20 
+      w-full h-16 border-t-2 border-black flex-row items-center justify-center space-x-4
+      md:w-20 md:h-full md:flex-col md:border-r-2 md:border-t-0 md:space-x-0 md:space-y-6 md:py-6 md:justify-start
+    ">
+      <div className="flex md:flex-col gap-4">
+        <Tooltip content={isAudioEnabled ? "Mute" : "Unmute"} position="right">
+          <button
+            onClick={onToggleAudio}
+            className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all ${isAudioEnabled ? 'bg-black text-white hover:bg-white hover:text-black' : 'bg-red-600 border-red-600 text-white hover:bg-white hover:text-red-600'
+              }`}
+          >
+            {isAudioEnabled ? <Mic size={20} /> : <MicOff size={20} />}
+          </button>
+        </Tooltip>
 
-      <button
-        onClick={onToggleVideo}
-        className={`p-3 rounded-full transition-all ${
-          isVideoEnabled ? 'bg-gray-700 hover:bg-gray-600' : 'bg-red-600 hover:bg-red-700'
-        }`}
-      >
-        {isVideoEnabled ? <Video size={24} className="text-white" /> : <VideoOff size={24} className="text-white" />}
-      </button>
+        <Tooltip content={isVideoEnabled ? "Blocking" : "Share"} position="right">
+          <button
+            onClick={onToggleVideo}
+            className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all ${isVideoEnabled ? 'bg-black text-white hover:bg-white hover:text-black' : 'bg-red-600 border-red-600 text-white hover:bg-white hover:text-red-600'
+              }`}
+          >
+            {isVideoEnabled ? <Video size={20} /> : <VideoOff size={20} />}
+          </button>
+        </Tooltip>
 
-      <button
-        onClick={onScreenShare}
-        className="p-3 rounded-full bg-gray-700 hover:bg-gray-600 transition-all"
-      >
-        <Monitor size={24} className="text-white" />
-      </button>
+        <Tooltip content="Screen Share" position="right">
+          <button
+            onClick={onScreenShare}
+            className="w-12 h-12 flex items-center justify-center border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all"
+          >
+            <Monitor size={20} />
+          </button>
+        </Tooltip>
 
-      <button
-        onClick={onToggleChat}
-        className="p-3 rounded-full bg-gray-700 hover:bg-gray-600 transition-all"
-      >
-        <MessageSquare size={24} className="text-white" />
-      </button>
+        <Tooltip content="Chat" position="right">
+          <button
+            onClick={onToggleChat}
+            className="w-12 h-12 flex items-center justify-center border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all"
+          >
+            <MessageSquare size={20} />
+          </button>
+        </Tooltip>
+      </div>
 
-      <button
-        onClick={onLeave}
-        className="p-3 rounded-full bg-red-600 hover:bg-red-700 transition-all ml-2"
-      >
-        <PhoneOff size={24} className="text-white" />
-      </button>
+      <Tooltip content="Leave" position="right">
+        <button
+          onClick={onLeave}
+          className="w-12 h-12 flex items-center justify-center border-2 border-red-600 bg-red-600 text-white hover:bg-white hover:text-red-600 transition-all md:mt-auto"
+        >
+          <PhoneOff size={20} />
+        </button>
+      </Tooltip>
     </div>
   );
 }

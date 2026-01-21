@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage } from '@/hooks/useChat';
 import { FileTransfer } from '@/hooks/useFileShare';
-import { Send, Paperclip, Download } from 'lucide-react';
+import { Send, Paperclip, Download, MessageSquare } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
 
 interface ChatPanelProps {
@@ -11,9 +11,10 @@ interface ChatPanelProps {
   onSendMessage: ((text: string) => void) | null;
   transfers: FileTransfer[];
   onSendFile: ((file: File) => void) | null;
+  onClose?: () => void;
 }
 
-export function ChatPanel({ messages, onSendMessage, transfers, onSendFile }: ChatPanelProps) {
+export function ChatPanel({ messages, onSendMessage, transfers, onSendFile, onClose }: ChatPanelProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -41,34 +42,45 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile }: Ch
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="p-4 border-b">
-        <h3 className="font-semibold text-lg">Chat</h3>
+      <div className="p-4 border-b-2 border-black bg-gray-50 flex items-center justify-between">
+        <h3 className="font-bold text-lg uppercase tracking-wide text-black">Discovery Chat</h3>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden px-3 py-1 bg-black text-white text-xs font-bold uppercase hover:bg-gray-800 transition-colors"
+          >
+            Close
+          </button>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && transfers.length === 0 && (
-          <p className="text-center text-gray-500 text-sm">No messages yet. Start chatting!</p>
+          <div className="h-full flex flex-col items-center justify-center text-gray-400 font-mono text-xs uppercase">
+            <MessageSquare size={32} className="mb-2 opacity-20" />
+            <p>No messages yet</p>
+          </div>
         )}
         {[...messages.map(m => ({ type: 'message' as const, data: m, time: m.timestamp })),
-          ...transfers.map(t => ({ type: 'file' as const, data: t, time: Date.now() }))]
+        ...transfers.map(t => ({ type: 'file' as const, data: t, time: Date.now() }))]
           .sort((a, b) => a.time - b.time)
           .map((item) => {
             if (item.type === 'message') {
               const msg = item.data as ChatMessage;
+              const isMe = msg.peerId === 'me';
               return (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.peerId === 'me' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                      msg.peerId === 'me'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-900'
-                    }`}
+                    className={`max-w-[80%] px-4 py-3 border-2 border-black ${isMe
+                      ? 'bg-black text-white'
+                      : 'bg-white text-black'
+                      }`}
                   >
-                    <p className="text-sm">{msg.text}</p>
-                    <span className="text-xs opacity-70">
+                    <p className="text-sm font-medium">{msg.text}</p>
+                    <span className={`text-[10px] font-mono block mt-1 ${isMe ? 'text-gray-400' : 'text-gray-500'}`}>
                       {new Date(msg.timestamp).toLocaleTimeString()}
                     </span>
                   </div>
@@ -76,28 +88,38 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile }: Ch
               );
             } else {
               const transfer = item.data as FileTransfer;
+              const isMe = transfer.peerId === 'me';
               return (
                 <div
                   key={transfer.id}
-                  className={`flex ${transfer.peerId === 'me' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                      transfer.peerId === 'me'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-300 text-gray-900'
-                    }`}
+                    className={`max-w-[80%] px-4 py-3 border-2 border-black ${isMe
+                      ? 'bg-gray-100 text-black'
+                      : 'bg-white text-black'
+                      }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <Paperclip size={16} />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{transfer.name}</p>
-                        <p className="text-xs opacity-70">{formatBytes(transfer.size)}</p>
+                    <div className="flex items-center gap-3">
+                      <Paperclip size={18} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold truncate">{transfer.name}</p>
+                        <p className="text-[10px] font-mono uppercase">{formatBytes(transfer.size)}</p>
                       </div>
-                      {transfer.peerId !== 'me' && transfer.progress === 100 && (
-                        <Download size={16} className="cursor-pointer" />
+                      {!isMe && transfer.progress === 100 && (
+                        <button className="p-1 hover:bg-black hover:text-white transition-colors border border-black">
+                          <Download size={16} />
+                        </button>
                       )}
                     </div>
+                    {transfer.progress < 100 && (
+                      <div className="mt-2 h-1 w-full bg-gray-200">
+                        <div
+                          className="h-full bg-black transition-all duration-300"
+                          style={{ width: `${transfer.progress}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -106,9 +128,9 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile }: Ch
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t-2 border-black bg-gray-50">
         <div className="flex gap-2">
-          <label className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 cursor-pointer flex items-center">
+          <label className="w-12 h-12 flex items-center justify-center border-2 border-black bg-white text-black hover:bg-black hover:text-white cursor-pointer transition-all">
             <Paperclip size={20} />
             <input type="file" onChange={handleFileSelect} className="hidden" />
           </label>
@@ -117,13 +139,13 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile }: Ch
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Type a message..."
-            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            placeholder="TYPE MESSAGE..."
+            className="flex-1 px-4 border-2 border-black bg-white focus:outline-none focus:bg-white font-mono text-sm placeholder:text-gray-400"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="w-12 h-12 flex items-center justify-center border-2 border-black bg-black text-white hover:bg-white hover:text-black disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             <Send size={20} />
           </button>
