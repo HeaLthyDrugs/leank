@@ -16,12 +16,7 @@ body {
   border-radius: 0px !important; /* Force sharp edges everywhere */
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    background: #000000;
-    color: #ffffff;
-  }
-}
+
 
 /* Scrollbar styling for sleek look */
 ::-webkit-scrollbar {
