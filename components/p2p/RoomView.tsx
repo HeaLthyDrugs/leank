@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRoom } from '@/hooks/useRoom';
+import { useRoomContext } from '@/contexts/RoomContext';
 import { useMedia } from '@/hooks/useMedia';
 import { useChat } from '@/hooks/useChat';
 import { useFileShare } from '@/hooks/useFileShare';
@@ -9,6 +9,7 @@ import { usePeerConnection } from '@/hooks/usePeerConnection';
 import { VideoGrid } from './VideoGrid';
 import { ChatPanel } from './ChatPanel';
 import { ControlBar } from './ControlBar';
+import { Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
 interface RoomViewProps {
   roomId: string;
@@ -16,21 +17,44 @@ interface RoomViewProps {
 }
 
 export function RoomView({ roomId, onLeave }: RoomViewProps) {
-  const { room, peers, isConnected, updatePeerStream } = useRoom(roomId);
+  // Use shared room context
+  const {
+    room,
+    peers,
+    isConnected,
+    isReconnecting,
+    connectionAttempts,
+    updatePeerStream,
+    joinRoom,
+    leaveRoom,
+    forceReconnect
+  } = useRoomContext();
+
   const { localStream, isAudioEnabled, isVideoEnabled, startMedia, toggleAudio, toggleVideo, startScreenShare } = useMedia();
   const { messages, sendMessage } = useChat(room);
   const { transfers, sendFile } = useFileShare(room);
-  const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(true);
+
+  // Handle leaving the room properly
+  const handleLeave = () => {
+    leaveRoom();
+    onLeave();
+  };
+
+  // Ensure we're connected to the room
+  useEffect(() => {
+    if (roomId) {
+      joinRoom(roomId);
+    }
+  }, [roomId, joinRoom]);
 
   useEffect(() => {
-    console.log('[RoomView] Messages:', messages.length);
-    console.log('[RoomView] SendMessage available:', !!sendMessage);
+    console.log('[RoomView] Room:', !!room, 'Connected:', isConnected, 'Peers:', peers.size);
+  }, [room, isConnected, peers.size]);
+
+  useEffect(() => {
+    console.log('[RoomView] Messages:', messages.length, 'SendMessage available:', !!sendMessage);
   }, [messages, sendMessage]);
-
-  useEffect(() => {
-    console.log('[RoomView] Transfers:', transfers.length);
-    console.log('[RoomView] SendFile available:', !!sendFile);
-  }, [transfers, sendFile]);
 
   usePeerConnection(room, localStream, updatePeerStream);
 
@@ -45,15 +69,6 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     };
     initMedia();
   }, [startMedia]);
-
-  useEffect(() => {
-    console.log('[RoomView] Local stream updated:', !!localStream);
-    if (localStream) {
-      console.log('[RoomView] Stream tracks:', localStream.getTracks().map(t => t.kind));
-    }
-  }, [localStream]);
-
-
 
   const handleScreenShare = async () => {
     const screenStream = await startScreenShare();
@@ -83,14 +98,59 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   };
 
   return (
-    <div className="h-screen w-screen bg-white flex flex-col-reverse md:flex-row overflow-hidden">
+    <div className="h-screen w-screen bg-white flex flex-col-reverse md:flex-row overflow-hidden relative">
+      {/* Connection Overlay */}
+      {!isConnected && (
+        <div className="absolute inset-0 z-50 bg-white/95 flex flex-col items-center justify-center">
+          <div className="text-center space-y-6 max-w-md px-8">
+            {isReconnecting ? (
+              <>
+                <div className="w-16 h-16 mx-auto bg-yellow-100 rounded-full flex items-center justify-center">
+                  <Loader2 size={32} className="animate-spin text-yellow-600" />
+                </div>
+                <h2 className="text-2xl font-black uppercase">Connecting...</h2>
+                <p className="text-gray-600 font-mono text-sm">
+                  ESTABLISHING P2P CONNECTION<br />
+                  ATTEMPT {connectionAttempts}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                  <WifiOff size={32} className="text-red-600" />
+                </div>
+                <h2 className="text-2xl font-black uppercase">Connection Lost</h2>
+                <p className="text-gray-600 font-mono text-sm">
+                  UNABLE TO CONNECT TO ROOM
+                </p>
+              </>
+            )}
+
+            <button
+              onClick={forceReconnect}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white font-bold uppercase hover:bg-gray-800 transition-colors"
+            >
+              <RefreshCw size={18} />
+              {isReconnecting ? 'FORCE RETRY' : 'RECONNECT'}
+            </button>
+
+            <button
+              onClick={handleLeave}
+              className="block mx-auto text-sm font-mono text-gray-500 hover:text-black transition-colors"
+            >
+              ← LEAVE ROOM
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 1. Control Bar (Sidebar on Desktop, Bottom Bar on Mobile) */}
       <ControlBar
         isAudioEnabled={isAudioEnabled}
         isVideoEnabled={isVideoEnabled}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
-        onLeave={onLeave}
+        onLeave={handleLeave}
         onToggleChat={() => setShowChat(!showChat)}
         onScreenShare={handleScreenShare}
       />
@@ -101,13 +161,24 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
         <div className="absolute top-0 left-0 right-0 z-10 p-4 pointer-events-none">
           <div className="inline-block bg-white border-2 border-black px-4 py-2 pointer-events-auto shadow-sm">
             <p className="text-sm font-bold uppercase tracking-wide text-black">
-              ROOM: {roomId.slice(0, 8)}
+              ROOM: {roomId.slice(0, 8).toUpperCase()}
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <div className={`w-2 h-2 ${isConnected ? 'bg-green-600' : 'bg-yellow-400'} border border-black`}></div>
-              <p className="text-xs font-mono text-gray-600">
-                {isConnected ? `${peers.size} PEERS` : 'CONNECTING...'}
-              </p>
+              {isConnected ? (
+                <>
+                  <Wifi size={12} className="text-green-600" />
+                  <p className="text-xs font-mono text-green-600">
+                    {peers.size} PEER{peers.size !== 1 ? 'S' : ''} CONNECTED
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Loader2 size={12} className="animate-spin text-yellow-600" />
+                  <p className="text-xs font-mono text-yellow-600">
+                    CONNECTING...
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -133,3 +204,4 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     </div>
   );
 }
+

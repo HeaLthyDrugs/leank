@@ -3,9 +3,9 @@
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useRoom } from '@/hooks/useRoom';
+import { useRoomContext } from '@/contexts/RoomContext';
 import { useRoomState } from '@/hooks/useRoomState';
-import { Copy, Check, Users, ArrowRight, Clock } from 'lucide-react';
+import { Copy, Check, Users, ArrowRight, Clock, Loader2, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 
@@ -20,8 +20,16 @@ export default function LobbyPage() {
   const [isHost, setIsHost] = useState(false);
   const [peerCount, setPeerCount] = useState(0);
 
-  const { room, peers, isConnected } = useRoom(roomId);
+  // Use shared room context instead of direct useRoom
+  const { room, peers, isConnected, isReconnecting, connectionAttempts, joinRoom, forceReconnect } = useRoomContext();
   const { roomState, startSession } = useRoomState(room, isHost);
+
+  // Join the room when component mounts
+  useEffect(() => {
+    if (roomId) {
+      joinRoom(roomId);
+    }
+  }, [roomId, joinRoom]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -70,6 +78,41 @@ export default function LobbyPage() {
             {isHost ? 'WAITING FOR PARTICIPANTS' : 'WAITING FOR HOST TO START'}
           </p>
         </div>
+
+        {/* Connection Status Banner */}
+        {!isConnected && (
+          <div className="bg-yellow-50 border-b-2 border-yellow-400 px-6 py-3 flex items-center justify-center gap-3 flex-wrap">
+            <Loader2 size={16} className="animate-spin text-yellow-600" />
+            <span className="text-sm font-mono text-yellow-700">
+              ESTABLISHING P2P CONNECTION... (ATTEMPT {connectionAttempts})
+            </span>
+            <button
+              onClick={forceReconnect}
+              className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold uppercase bg-yellow-600 text-white hover:bg-yellow-700 transition-colors"
+            >
+              <RefreshCw size={12} />
+              RETRY
+            </button>
+          </div>
+        )}
+
+        {isConnected && peers.size === 0 && (
+          <div className="bg-blue-50 border-b-2 border-blue-400 px-6 py-3 flex items-center justify-center gap-3">
+            <Wifi size={16} className="text-blue-600" />
+            <span className="text-sm font-mono text-blue-700">
+              CONNECTED — WAITING FOR OTHER PARTICIPANTS TO JOIN
+            </span>
+          </div>
+        )}
+
+        {isConnected && peers.size > 0 && (
+          <div className="bg-green-50 border-b-2 border-green-400 px-6 py-3 flex items-center justify-center gap-3">
+            <Check size={16} className="text-green-600" />
+            <span className="text-sm font-mono text-green-700">
+              ALL CONNECTED — {peers.size + 1} PARTICIPANTS READY
+            </span>
+          </div>
+        )}
 
         <div className="p-8 grid md:grid-cols-2 gap-8">
           {/* Left Column: Room Info */}
@@ -144,7 +187,8 @@ export default function LobbyPage() {
                   <Users size={18} />
                   Participants
                 </h3>
-                <span className={`text-xs font-mono font-bold px-2 py-1 border border-black ${isConnected ? 'bg-black text-white' : 'bg-transparent text-gray-400'}`}>
+                <span className={`text-xs font-mono font-bold px-2 py-1 border border-black flex items-center gap-2 ${isConnected ? 'bg-black text-white' : 'bg-transparent text-gray-400'}`}>
+                  {!isConnected && <Loader2 size={12} className="animate-spin" />}
                   {isConnected ? `CONNECTED: ${peers.size + 1}` : 'CONNECTING...'}
                 </span>
               </div>
