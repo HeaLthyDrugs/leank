@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Monitor } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface ControlBarProps {
   isAudioEnabled: boolean;
@@ -12,8 +14,6 @@ interface ControlBarProps {
   onToggleChat: () => void;
   onScreenShare: () => void;
 }
-
-import { Tooltip } from '@/components/ui/Tooltip';
 
 export function ControlBar({
   isAudioEnabled,
@@ -28,8 +28,15 @@ export function ControlBar({
   return (
     <div className="flex bg-white z-20 
       w-full h-16 border-t-2 border-black flex-row items-center justify-center space-x-4
-      md:w-20 md:h-full md:flex-col md:border-r-2 md:border-t-0 md:space-x-0 md:space-y-6 md:py-6 md:justify-start
+      md:w-20 md:h-full md:flex-col md:border-r-2 md:border-t-0 md:space-x-0 md:space-y-4 md:py-4 md:justify-start
     ">
+      {/* Logo - hidden on mobile, shown on desktop */}
+      <div className="hidden md:flex md:flex-col md:items-center md:gap-4">
+        <Logo size="sm" showText={false} />
+        {/* Separator */}
+        <div className="w-10 h-px bg-gray-300" />
+      </div>
+
       <div className="flex md:flex-col gap-4">
         <Tooltip content={isAudioEnabled ? "Mute" : "Unmute"} position="right">
           <button

@@ -7,6 +7,7 @@ import { useRoomContext } from '@/contexts/RoomContext';
 import { useRoomState } from '@/hooks/useRoomState';
 import { Copy, Check, Users, ArrowRight, Clock, Loader2, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Logo } from '@/components/ui/Logo';
 
 
 
@@ -71,10 +72,10 @@ export default function LobbyPage() {
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="max-w-4xl w-full border-2 border-black bg-white">
         <div className="border-b-2 border-black p-8 text-center bg-gray-50">
-          <h1 className="text-3xl font-black text-black uppercase tracking-tighter mb-2">
+          <h2 className="text-xl font-bold text-gray-700 uppercase tracking-wide mb-1">
             {isHost ? 'Room Ready' : 'Lobby'}
-          </h1>
-          <p className="text-gray-600 font-mono text-sm tracking-wide">
+          </h2>
+          <p className="text-gray-500 font-mono text-sm tracking-wide">
             {isHost ? 'WAITING FOR PARTICIPANTS' : 'WAITING FOR HOST TO START'}
           </p>
         </div>

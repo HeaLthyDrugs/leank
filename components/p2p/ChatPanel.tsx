@@ -43,7 +43,7 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile, onCl
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="p-4 border-b-2 border-black bg-gray-50 flex items-center justify-between">
-        <h3 className="font-bold text-lg uppercase tracking-wide text-black">Discovery Chat</h3>
+        <h3 className="font-bold text-lg uppercase tracking-wide text-black">Chat</h3>
         {onClose && (
           <button
             onClick={onClose}

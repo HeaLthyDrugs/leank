@@ -17,10 +17,13 @@ export function useRoomState(room: Room | null, isHost: boolean) {
   useEffect(() => {
     if (!room) return;
 
-    const [sendState, receiveState] = room.makeAction<RoomState>('roomState');
+    const [sendState, receiveState] = room.makeAction('roomState');
 
-    receiveState((state) => {
-      setRoomState(state);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    receiveState((state: any) => {
+      if (state && typeof state.isSessionStarted !== 'undefined') {
+        setRoomState(state);
+      }
     });
 
     if (isHost) {
@@ -43,10 +46,11 @@ export function useRoomState(room: Room | null, isHost: boolean) {
       isSessionStarted: true,
       hostId: 'me'
     };
-    
+
     setRoomState(newState);
-    
-    const [sendState] = room.makeAction('roomState');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [sendState] = room.makeAction('roomState') as unknown as [(data: any) => void];
     sendState(newState);
   };
 

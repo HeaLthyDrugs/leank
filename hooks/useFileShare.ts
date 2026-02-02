@@ -22,13 +22,18 @@ export function useFileShare(room: Room | null) {
     const [sendData, receiveData] = room.makeAction('file');
     const [sendMeta, receiveMeta] = room.makeAction('fileMeta');
 
-    receiveMeta((meta: { name: string; size: number; id: string }, peerId: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    receiveMeta((meta: any, peerId: string) => {
       console.log('[useFileShare] Received file meta:', meta, 'from:', peerId);
-      setTransfers((prev) => [...prev, { ...meta, progress: 0, peerId }]);
+      if (meta && meta.name && meta.size && meta.id) {
+        setTransfers((prev) => [...prev, { ...meta, progress: 0, peerId }]);
+      }
     });
 
-    receiveData((data: ArrayBuffer, peerId: string) => {
-      console.log('[useFileShare] Received file data from:', peerId, 'size:', data.byteLength);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    receiveData((data: any, peerId: string) => {
+      console.log('[useFileShare] Received file data from:', peerId, 'size:', data?.byteLength);
+      if (!data) return;
       setTransfers((prev) => {
         const updated = [...prev];
         const transfer = updated.find(t => t.peerId === peerId && t.progress < 100);

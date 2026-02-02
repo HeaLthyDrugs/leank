@@ -9,6 +9,7 @@ import { usePeerConnection } from '@/hooks/usePeerConnection';
 import { VideoGrid } from './VideoGrid';
 import { ChatPanel } from './ChatPanel';
 import { ControlBar } from './ControlBar';
+import { Logo } from '@/components/ui/Logo';
 import { Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
 interface RoomViewProps {
@@ -159,26 +160,30 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
       <div className="flex-1 flex flex-col relative overflow-hidden">
         {/* Header / Info Bar */}
         <div className="absolute top-0 left-0 right-0 z-10 p-4 pointer-events-none">
-          <div className="inline-block bg-white border-2 border-black px-4 py-2 pointer-events-auto shadow-sm">
-            <p className="text-sm font-bold uppercase tracking-wide text-black">
-              ROOM: {roomId.slice(0, 8).toUpperCase()}
-            </p>
-            <div className="flex items-center gap-2 mt-1">
-              {isConnected ? (
-                <>
-                  <Wifi size={12} className="text-green-600" />
-                  <p className="text-xs font-mono text-green-600">
-                    {peers.size} PEER{peers.size !== 1 ? 'S' : ''} CONNECTED
-                  </p>
-                </>
-              ) : (
-                <>
-                  <Loader2 size={12} className="animate-spin text-yellow-600" />
-                  <p className="text-xs font-mono text-yellow-600">
-                    CONNECTING...
-                  </p>
-                </>
-              )}
+          <div className="inline-flex items-center gap-4 bg-white border-2 border-black px-4 py-2 pointer-events-auto shadow-sm">
+            <Logo size="sm" variant="light" showText={false} />
+            <div className="h-6 w-px bg-gray-300" />
+            <div>
+              <p className="text-sm font-bold uppercase tracking-wide text-black">
+                {roomId.slice(0, 8).toUpperCase()}
+              </p>
+              <div className="flex items-center gap-2">
+                {isConnected ? (
+                  <>
+                    <Wifi size={12} className="text-green-600" />
+                    <p className="text-xs font-mono text-green-600">
+                      {peers.size} PEER{peers.size !== 1 ? 'S' : ''} CONNECTED
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Loader2 size={12} className="animate-spin text-yellow-600" />
+                    <p className="text-xs font-mono text-yellow-600">
+                      CONNECTING...
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
