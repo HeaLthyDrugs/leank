@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { joinRoom as joinRoomBT, Room } from 'trystero/torrent';
+import { TRYSTERO_CONFIG } from '@/lib/trystero-config';
 
 export interface Peer {
   id: string;
@@ -17,19 +18,11 @@ export function useRoom(roomId: string) {
     if (!roomId) return;
 
     console.log('[useRoom] Joining room:', roomId);
-    
+
     const config = {
-      appId: 'leank-p2p-app',
-      rtcConfig: {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-      },
-      trackerUrls: [
-        'wss://tracker.openwebtorrent.com',
-        'wss://tracker.webtorrent.dev'
-      ]
+      appId: TRYSTERO_CONFIG.appId,
+      rtcConfig: TRYSTERO_CONFIG.rtcConfig,
+      trackerUrls: TRYSTERO_CONFIG.trackerUrls
     };
 
     const newRoom = joinRoomBT(config, roomId);
@@ -58,7 +51,7 @@ export function useRoom(roomId: string) {
     });
 
     const [sendPresence, receivePresence] = newRoom.makeAction('presence');
-    
+
     receivePresence((data, peerId) => {
       console.log('[useRoom] Presence from:', peerId);
     });

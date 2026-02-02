@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { generateRoomId } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import { Video, Users } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
+import { Users } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
@@ -42,11 +43,8 @@ export default function Home() {
       <div className="max-w-xl w-full">
         <div className="text-center mb-16">
           <div className="flex items-center justify-center mb-6">
-            <div className="bg-black p-3">
-              <Video size={48} className="text-white" />
-            </div>
+            <Logo size="xl" variant="light" />
           </div>
-          <h1 className="text-6xl font-black text-black mb-4 tracking-tighter uppercase">LeanK</h1>
           <p className="text-lg text-gray-600 font-mono tracking-wide">P2P SECURE COMMUNICATION</p>
         </div>
 
