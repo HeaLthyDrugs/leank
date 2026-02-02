@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { RoomProvider } from "@/contexts/RoomContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
- title: "Leank — Peer-to-Peer Calls, Chat & File Sharing",
+  title: "Leank — Peer-to-Peer Calls, Chat & File Sharing",
   description:
     "Leank is a lightweight, browser-based communication tool for instant peer-to-peer video calls, voice chat, file sharing, and screen sharing — no login, no storage, no backend.",
   keywords: [
@@ -40,8 +41,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <RoomProvider>
+          {children}
+        </RoomProvider>
       </body>
     </html>
   );
 }
+

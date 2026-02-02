@@ -74,12 +74,12 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile, onCl
                   className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[80%] px-4 py-3 border-2 border-black ${isMe
+                    className={`max-w-[80%] px-4 py-3 border-2 border-black overflow-hidden ${isMe
                       ? 'bg-black text-white'
                       : 'bg-white text-black'
                       }`}
                   >
-                    <p className="text-sm font-medium">{msg.text}</p>
+                    <p className="text-sm font-medium break-words whitespace-pre-wrap">{msg.text}</p>
                     <span className={`text-[10px] font-mono block mt-1 ${isMe ? 'text-gray-400' : 'text-gray-500'}`}>
                       {new Date(msg.timestamp).toLocaleTimeString()}
                     </span>
