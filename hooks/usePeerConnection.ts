@@ -16,7 +16,8 @@ export function usePeerConnection(
     console.log('[usePeerConnection] Setting up peer connections, localStream:', !!localStream);
     const peers = new Map<string, SimplePeer.Instance>();
 
-    const [sendSignal, receiveSignal] = room.makeAction('signal');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [sendSignal, receiveSignal] = room.makeAction('signal') as unknown as [(data: any, peerId?: string) => void, (callback: (data: any, peerId: string) => void) => void];
 
     room.onPeerJoin((peerId) => {
       console.log('[usePeerConnection] Peer joined, creating connection:', peerId);
@@ -43,7 +44,8 @@ export function usePeerConnection(
       peers.set(peerId, peer);
     });
 
-    receiveSignal((signal: SimplePeer.SignalData, peerId: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    receiveSignal((signal: any, peerId: string) => {
       console.log('[usePeerConnection] Received signal from:', peerId);
       let peer = peers.get(peerId);
 
