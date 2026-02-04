@@ -8,6 +8,7 @@ export interface FileTransfer {
   name: string;
   size: number;
   progress: number;
+  previewurl: string;
   peerId: string;
 }
 
@@ -45,6 +46,7 @@ export function useFileShare(room: Room | null) {
           a.download = transfer.name;
           a.click();
           transfer.progress = 100;
+          transfer.previewurl = url;
         }
         return updated;
       });
@@ -58,9 +60,12 @@ export function useFileShare(room: Room | null) {
 
       const buffer = await file.arrayBuffer();
       sendData(buffer);
+      
+      const blob = new Blob([buffer]);
+      const url = URL.createObjectURL(blob);
       console.log('[useFileShare] File sent successfully');
 
-      setTransfers((prev) => [...prev, { ...meta, progress: 100, peerId: 'me' }]);
+      setTransfers((prev) => [...prev, { ...meta, progress: 100, peerId: 'me' , previewurl:url}]);
     });
   }, [room]);
 

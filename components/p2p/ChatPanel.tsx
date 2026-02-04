@@ -40,6 +40,28 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile, onCl
     }
   };
 
+  const createPreviewTag = (metadata: FileTransfer) => {
+    if (metadata) {
+      let extention = ".".concat(metadata.name.split(".")[1]);
+      console.log(extention);
+      if ([".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"].includes(extention)) {
+        return <img src={`${metadata.previewurl}`} alt="file preview" />;
+
+      } else if ([".json", ".md",".txt",".js",".html",".css"].includes(extention)) {
+        return <iframe className='w-full overflow-hidden' src={metadata.previewurl}></iframe>;
+
+      } else if ([".mp4", ".webm", ".ogg"].includes(extention)) {
+        return (<video controls>
+          <source src={metadata.previewurl} type="video/mp4"></source>
+        </video>);
+
+      } else if ([".zip", ".exe", ".psd", ".docx", ".xlsx"].includes(extention)) {
+        return <div>No preview</div>;
+      }
+    }
+    return <div>no preview</div>;
+  }
+
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="p-4 border-b-2 border-black bg-gray-50 flex items-center justify-between">
@@ -79,7 +101,7 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile, onCl
                       : 'bg-white text-black'
                       }`}
                   >
-                    <p className="text-sm font-medium break-words whitespace-pre-wrap">{msg.text}</p>
+                    <p className="text-sm font-medium wrap-break-word whitespace-pre-wrap">{msg.text}</p>
                     <span className={`text-[10px] font-mono block mt-1 ${isMe ? 'text-gray-400' : 'text-gray-500'}`}>
                       {new Date(msg.timestamp).toLocaleTimeString()}
                     </span>
@@ -100,6 +122,9 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile, onCl
                       : 'bg-white text-black'
                       }`}
                   >
+                    {/* <div><img src={`${transfer.previewurl}`} alt="file preview" /></div> */}
+                    <div>{createPreviewTag(transfer)}</div>
+                    <div className='border my-0.5'></div>
                     <div className="flex items-center gap-3">
                       <Paperclip size={18} />
                       <div className="flex-1 min-w-0">
