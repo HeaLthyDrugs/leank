@@ -45,9 +45,9 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile, onCl
       let extention = ".".concat(metadata.name.split(".")[1]);
       console.log(extention);
       if ([".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"].includes(extention)) {
-        return <img src={`${metadata.previewurl}`} alt="file preview" />;
+        return <img src={`${metadata.previewurl}`} className='select-none' draggable="false" alt="file preview" />;
 
-      } else if ([".json", ".md",".txt",".js",".html",".css"].includes(extention)) {
+      } else if ([".json", ".md", ".txt", ".js", ".html", ".css"].includes(extention)) {
         return <iframe className='w-full overflow-hidden' src={metadata.previewurl}></iframe>;
 
       } else if ([".mp4", ".webm", ".ogg"].includes(extention)) {
@@ -104,6 +104,7 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile, onCl
                     <p className="text-sm font-medium wrap-break-word whitespace-pre-wrap">{msg.text}</p>
                     <span className={`text-[10px] font-mono block mt-1 ${isMe ? 'text-gray-400' : 'text-gray-500'}`}>
                       {new Date(msg.timestamp).toLocaleTimeString()}
+                      <span className='text-cyan-500 text-[0.7rem]'> {isMe ? "" : msg.peerId.slice(0, 6)}</span>
                     </span>
                   </div>
                 </div>
@@ -145,6 +146,7 @@ export function ChatPanel({ messages, onSendMessage, transfers, onSendFile, onCl
                         />
                       </div>
                     )}
+                    <div className='text-cyan-500 text-[0.7rem]'> {isMe ? "" : transfer.peerId.slice(0, 6)}</div>
                   </div>
                 </div>
               );
