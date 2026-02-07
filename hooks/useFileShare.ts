@@ -10,11 +10,13 @@ export interface FileTransfer {
   progress: number;
   previewurl: string;
   peerId: string;
+  timestamp: number;
+  message?: string;
 }
 
 export function useFileShare(room: Room | null) {
   const [transfers, setTransfers] = useState<FileTransfer[]>([]);
-  const [sendFile, setSendFile] = useState<((file: File) => void) | null>(null);
+  const [sendFile, setSendFile] = useState<((file: File, message?: string) => void) | null>(null);
 
   useEffect(() => {
     if (!room) return;
@@ -27,7 +29,7 @@ export function useFileShare(room: Room | null) {
     receiveMeta((meta: any, peerId: string) => {
       console.log('[useFileShare] Received file meta:', meta, 'from:', peerId);
       if (meta && meta.name && meta.size && meta.id) {
-        setTransfers((prev) => [...prev, { ...meta, progress: 0, peerId }]);
+        setTransfers((prev) => [...prev, { ...meta, progress: 0, peerId, timestamp: meta.timestamp || Date.now(), message: meta.message }]);
       }
     });
 
@@ -41,10 +43,7 @@ export function useFileShare(room: Room | null) {
         if (transfer) {
           const blob = new Blob([data]);
           const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = transfer.name;
-          a.click();
+          // Don't auto-download - let user download via the download button
           transfer.progress = 100;
           transfer.previewurl = url;
         }
@@ -52,20 +51,20 @@ export function useFileShare(room: Room | null) {
       });
     });
 
-    setSendFile(() => async (file: File) => {
-      console.log('[useFileShare] Sending file:', file.name, file.size);
+    setSendFile(() => async (file: File, message?: string) => {
+      console.log('[useFileShare] Sending file:', file.name, file.size, 'with message:', message);
       const id = crypto.randomUUID();
-      const meta = { name: file.name, size: file.size, id };
+      const meta = { name: file.name, size: file.size, id, timestamp: Date.now(), message: message || '' };
       sendMeta(meta);
 
       const buffer = await file.arrayBuffer();
       sendData(buffer);
-      
+
       const blob = new Blob([buffer]);
       const url = URL.createObjectURL(blob);
       console.log('[useFileShare] File sent successfully');
 
-      setTransfers((prev) => [...prev, { ...meta, progress: 100, peerId: 'me' , previewurl:url}]);
+      setTransfers((prev) => [...prev, { ...meta, progress: 100, peerId: 'me', previewurl: url }]);
     });
   }, [room]);
 

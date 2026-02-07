@@ -33,7 +33,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   } = useRoomContext();
 
   const { localStream, isAudioEnabled, isVideoEnabled, startMedia, toggleAudio, toggleVideo, startScreenShare } = useMedia();
-  const { messages, sendMessage } = useChat(room);
+  const { messages, sendMessage, typingPeers, broadcastTypingStatus } = useChat(room);
   const { transfers, sendFile } = useFileShare(room);
   const [showChat, setShowChat] = useState(true);
   const [showHostSection, setShowHostSection] = useState(false);
@@ -169,7 +169,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
           onToggleVideo={toggleVideo}
           onLeave={handleLeave}
           onToggleChat={() => { setShowChat(!showChat); setShowHostSection(false); }}
-          onToggleHostSection={() => { setShowHostSection(!showHostSection); setShowChat(false) }}
+          onToggleHostSection={() => {if(isHost){setShowHostSection(!showHostSection); setShowChat(false)} }}
           onScreenShare={handleScreenShare}
         />
 
@@ -212,17 +212,19 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
         </div>
 
         {/* 3. Chat Panel (Right Sidebar on Desktop, Overlay on Mobile) */}
-        {showChat && (
-          <div className="absolute inset-0 z-30 md:static md:w-[400px] md:border-l-2 md:border-black bg-white flex flex-col">
-            <ChatPanel
-              messages={messages}
-              onSendMessage={sendMessage}
-              transfers={transfers}
-              onSendFile={sendFile}
-              onClose={() => setShowChat(false)}
-            />
-          </div>
-        )}
+      {showChat && (
+        <div className="absolute inset-0 z-30 md:static md:w-[400px] md:border-l-2 md:border-black bg-white flex flex-col">
+          <ChatPanel
+            messages={messages}
+            onSendMessage={sendMessage}
+            transfers={transfers}
+            onSendFile={sendFile}
+            onClose={() => setShowChat(false)}
+            typingPeers={typingPeers}
+            onTypingChange={broadcastTypingStatus}
+          />
+        </div>
+      )}
         
         {/* 4. Host Section (design is similar as chat panel) */}
         {isHost && showHostSection ? (
