@@ -112,7 +112,7 @@ export function ChatPanel({
     const ext = `.${fileName.split('.').pop()?.toLowerCase()}`;
     if (['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(ext)) return 'image';
     if (['.mp4', '.webm', '.ogg'].includes(ext)) return 'video';
-    if (['.json', '.md', '.txt', '.js', '.html', '.css', '.pdf'].includes(ext)) return 'document';
+    if (['.json', '.md', '.txt', '.js', '.html', '.css'].includes(ext)) return 'document';
     return 'other';
   };
 
