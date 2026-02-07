@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Monitor } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Monitor , HatGlasses } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Tooltip } from '@/components/ui/Tooltip';
 
@@ -12,6 +12,7 @@ interface ControlBarProps {
   onToggleVideo: () => void;
   onLeave: () => void;
   onToggleChat: () => void;
+  onToggleHostSection: () => void;
   onScreenShare: () => void;
 }
 
@@ -22,6 +23,7 @@ export function ControlBar({
   onToggleVideo,
   onLeave,
   onToggleChat,
+  onToggleHostSection,
   onScreenShare
 }: ControlBarProps) {
 
@@ -76,6 +78,15 @@ export function ControlBar({
           </button>
         </Tooltip>
       </div>
+
+      <Tooltip content="Host controls" position="right">
+        <button
+          onClick={onToggleHostSection}
+          className="w-12 h-12 flex items-center justify-center border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all"
+        >
+          <HatGlasses size={20} />
+        </button>
+      </Tooltip>
 
       <Tooltip content="Leave" position="right">
         <button

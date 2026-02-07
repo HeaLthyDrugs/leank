@@ -9,6 +9,7 @@ import { usePeerConnection } from '@/hooks/usePeerConnection';
 import { VideoGrid } from './VideoGrid';
 import { ChatPanel } from './ChatPanel';
 import { ControlBar } from './ControlBar';
+import HostSection from './HostSection';
 import { Logo } from '@/components/ui/Logo';
 import { Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
@@ -35,6 +36,13 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   const { messages, sendMessage } = useChat(room);
   const { transfers, sendFile } = useFileShare(room);
   const [showChat, setShowChat] = useState(true);
+  const [showHostSection, setShowHostSection] = useState(false);
+  const [isHost, setIsHost] = useState(false);
+  useEffect(() => {
+    let val = localStorage.getItem(`room_${roomId}_host`) === 'true' ? true : false;
+    setIsHost(val);
+    console.log();
+  }, [])
 
   // Handle leaving the room properly
   const handleLeave = () => {
@@ -98,115 +106,137 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     }
   };
 
-  return (
-    <div className="h-screen w-screen bg-white flex flex-col-reverse md:flex-row overflow-hidden relative">
-      {/* Connection Overlay */}
-      {!isConnected && (
-        <div className="absolute inset-0 z-50 bg-white/95 flex flex-col items-center justify-center">
-          <div className="text-center space-y-6 max-w-md px-8">
-            {isReconnecting ? (
-              <>
-                <div className="w-16 h-16 mx-auto bg-yellow-100 rounded-full flex items-center justify-center">
-                  <Loader2 size={32} className="animate-spin text-yellow-600" />
-                </div>
-                <h2 className="text-2xl font-black uppercase">Connecting...</h2>
-                <p className="text-gray-600 font-mono text-sm">
-                  ESTABLISHING P2P CONNECTION<br />
-                  ATTEMPT {connectionAttempts}
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center">
-                  <WifiOff size={32} className="text-red-600" />
-                </div>
-                <h2 className="text-2xl font-black uppercase">Connection Lost</h2>
-                <p className="text-gray-600 font-mono text-sm">
-                  UNABLE TO CONNECT TO ROOM
-                </p>
-              </>
-            )}
+  if (false) { // here isLocked condition will be checked
+    return (
+      <>
+        <div>Sorry You are not allowed to join Room since it is Locked by Host</div>
+        <div>This page is to be constructed</div>
+      </>
+    )
+  } else {
+    return (
+      <div className="h-screen w-screen bg-white flex flex-col-reverse md:flex-row overflow-hidden relative">
+        {/* Connection Overlay */}
+        {!isConnected && (
+          <div className="absolute inset-0 z-50 bg-white/95 flex flex-col items-center justify-center">
+            <div className="text-center space-y-6 max-w-md px-8">
+              {isReconnecting ? (
+                <>
+                  <div className="w-16 h-16 mx-auto bg-yellow-100 rounded-full flex items-center justify-center">
+                    <Loader2 size={32} className="animate-spin text-yellow-600" />
+                  </div>
+                  <h2 className="text-2xl font-black uppercase">Connecting...</h2>
+                  <p className="text-gray-600 font-mono text-sm">
+                    ESTABLISHING P2P CONNECTION<br />
+                    ATTEMPT {connectionAttempts}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                    <WifiOff size={32} className="text-red-600" />
+                  </div>
+                  <h2 className="text-2xl font-black uppercase">Connection Lost</h2>
+                  <p className="text-gray-600 font-mono text-sm">
+                    UNABLE TO CONNECT TO ROOM
+                  </p>
+                </>
+              )}
 
-            <button
-              onClick={forceReconnect}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white font-bold uppercase hover:bg-gray-800 transition-colors"
-            >
-              <RefreshCw size={18} />
-              {isReconnecting ? 'FORCE RETRY' : 'RECONNECT'}
-            </button>
+              <button
+                onClick={forceReconnect}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white font-bold uppercase hover:bg-gray-800 transition-colors"
+              >
+                <RefreshCw size={18} />
+                {isReconnecting ? 'FORCE RETRY' : 'RECONNECT'}
+              </button>
 
-            <button
-              onClick={handleLeave}
-              className="block mx-auto text-sm font-mono text-gray-500 hover:text-black transition-colors"
-            >
-              ← LEAVE ROOM
-            </button>
+              <button
+                onClick={handleLeave}
+                className="block mx-auto text-sm font-mono text-gray-500 hover:text-black transition-colors"
+              >
+                ← LEAVE ROOM
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 1. Control Bar (Sidebar on Desktop, Bottom Bar on Mobile) */}
-      <ControlBar
-        isAudioEnabled={isAudioEnabled}
-        isVideoEnabled={isVideoEnabled}
-        onToggleAudio={toggleAudio}
-        onToggleVideo={toggleVideo}
-        onLeave={handleLeave}
-        onToggleChat={() => setShowChat(!showChat)}
-        onScreenShare={handleScreenShare}
-      />
+        {/* 1. Control Bar (Sidebar on Desktop, Bottom Bar on Mobile) */}
+        <ControlBar
+          isAudioEnabled={isAudioEnabled}
+          isVideoEnabled={isVideoEnabled}
+          onToggleAudio={toggleAudio}
+          onToggleVideo={toggleVideo}
+          onLeave={handleLeave}
+          onToggleChat={() => { setShowChat(!showChat); setShowHostSection(false); }}
+          onToggleHostSection={() => { setShowHostSection(!showHostSection); setShowChat(false) }}
+          onScreenShare={handleScreenShare}
+        />
 
-      {/* 2. Main Content Area */}
-      <div className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Header / Info Bar */}
-        <div className="absolute top-0 left-0 right-0 z-10 p-4 pointer-events-none">
-          <div className="inline-flex items-center gap-4 bg-white border-2 border-black px-4 py-2 pointer-events-auto shadow-sm">
-            <Logo size="sm" variant="light" showText={false} />
-            <div className="h-6 w-px bg-gray-300" />
-            <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-black">
-                {roomId.slice(0, 8).toUpperCase()}
-              </p>
-              <div className="flex items-center gap-2">
-                {isConnected ? (
-                  <>
-                    <Wifi size={12} className="text-green-600" />
-                    <p className="text-xs font-mono text-green-600">
-                      {peers.size} PEER{peers.size !== 1 ? 'S' : ''} CONNECTED
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <Loader2 size={12} className="animate-spin text-yellow-600" />
-                    <p className="text-xs font-mono text-yellow-600">
-                      CONNECTING...
-                    </p>
-                  </>
-                )}
+        {/* 2. Main Content Area */}
+        <div className="flex-1 flex flex-col relative overflow-hidden">
+          {/* Header / Info Bar */}
+          <div className="absolute top-0 left-0 right-0 z-10 p-4 pointer-events-none">
+            <div className="inline-flex items-center gap-4 bg-white border-2 border-black px-4 py-2 pointer-events-auto shadow-sm">
+              <Logo size="sm" variant="light" showText={false} />
+              <div className="h-6 w-px bg-gray-300" />
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-black">
+                  {roomId.slice(0, 8).toUpperCase()}
+                </p>
+                <div className="flex items-center gap-2">
+                  {isConnected ? (
+                    <>
+                      <Wifi size={12} className="text-green-600" />
+                      <p className="text-xs font-mono text-green-600">
+                        {peers.size} PEER{peers.size !== 1 ? 'S' : ''} CONNECTED
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Loader2 size={12} className="animate-spin text-yellow-600" />
+                      <p className="text-xs font-mono text-yellow-600">
+                        CONNECTING...
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Video Grid */}
+          <div className="flex-1 overflow-hidden bg-gray-50 relative">
+            <VideoGrid localStream={localStream} peers={peers} isVideoEnabled={isVideoEnabled} />
+          </div>
         </div>
 
-        {/* Video Grid */}
-        <div className="flex-1 overflow-hidden bg-gray-50 relative">
-          <VideoGrid localStream={localStream} peers={peers} isVideoEnabled={isVideoEnabled} />
-        </div>
+        {/* 3. Chat Panel (Right Sidebar on Desktop, Overlay on Mobile) */}
+        {showChat && (
+          <div className="absolute inset-0 z-30 md:static md:w-[400px] md:border-l-2 md:border-black bg-white flex flex-col">
+            <ChatPanel
+              messages={messages}
+              onSendMessage={sendMessage}
+              transfers={transfers}
+              onSendFile={sendFile}
+              onClose={() => setShowChat(false)}
+            />
+          </div>
+        )}
+        
+        {/* 4. Host Section (design is similar as chat panel) */}
+        {isHost && showHostSection ? (
+           (
+            <div className="absolute inset-0 z-30 md:static md:w-[400px] md:border-l-2 md:border-black bg-white flex flex-col">
+              <HostSection
+                onClose={() => setShowHostSection(false)}
+                ishosttag={isHost}
+              />
+            </div>
+          )
+        ):""}
       </div>
-
-      {/* 3. Chat Panel (Right Sidebar on Desktop, Overlay on Mobile) */}
-      {showChat && (
-        <div className="absolute inset-0 z-30 md:static md:w-[400px] md:border-l-2 md:border-black bg-white flex flex-col">
-          <ChatPanel
-            messages={messages}
-            onSendMessage={sendMessage}
-            transfers={transfers}
-            onSendFile={sendFile}
-            onClose={() => setShowChat(false)}
-          />
-        </div>
-      )}
-    </div>
-  );
+    );
+  }
 }
 
