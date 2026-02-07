@@ -32,7 +32,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   } = useRoomContext();
 
   const { localStream, isAudioEnabled, isVideoEnabled, startMedia, toggleAudio, toggleVideo, startScreenShare } = useMedia();
-  const { messages, sendMessage } = useChat(room);
+  const { messages, sendMessage, typingPeers, broadcastTypingStatus } = useChat(room);
   const { transfers, sendFile } = useFileShare(room);
   const [showChat, setShowChat] = useState(true);
 
@@ -203,6 +203,8 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
             transfers={transfers}
             onSendFile={sendFile}
             onClose={() => setShowChat(false)}
+            typingPeers={typingPeers}
+            onTypingChange={broadcastTypingStatus}
           />
         </div>
       )}
