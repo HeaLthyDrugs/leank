@@ -12,15 +12,17 @@ const HostSection = ({ onClose, ishosttag }: HostPanelProps) => {
         room,
         roomId,
         peers,
+        isRoomLocked,
         isConnected,
         isReconnecting,
         connectionAttempts,
         updatePeerStream,
+        setIsRoomLocked,
         joinRoom,
         leaveRoom,
         forceReconnect
     } = useRoomContext();
-    const [islocked, setIslocked] = useState(false);
+
 
 
     if (ishosttag) {
@@ -39,11 +41,11 @@ const HostSection = ({ onClose, ishosttag }: HostPanelProps) => {
                 </div>
                 <div className="flex flex-col h-full bg-gray-200">
                     <div className="p-4 my-1 border-b-2 border-black bg-gray-50 flex items-center justify-between">
-                        Lock Room <span className='text-cyan-400'>({islocked ? "unlocked" : "locked"})</span>
+                        Lock Room <span className='text-cyan-400'>({isRoomLocked ? "locked" : "unlocked"})</span>
                         <button
-                            onClick={() => { setIslocked(!islocked) }}
+                            onClick={() => {setIsRoomLocked(!isRoomLocked) }}
                             className="">
-                            {islocked ? <ToggleLeft size={30} /> : <ToggleRight size={30} />}
+                            {isRoomLocked ? <ToggleRight size={30} /> : <ToggleLeft size={30} />}
                         </button>
                     </div>
                     <div className="p-4 my-1 border-b-2 border-black bg-gray-50 flex items-center justify-between">

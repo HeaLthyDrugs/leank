@@ -15,10 +15,12 @@ interface RoomContextType {
     roomId: string | null;
     peers: Map<string, Peer>;
     isConnected: boolean;
+    isRoomLocked:boolean;
     isReconnecting: boolean;
     connectionAttempts: number;
 
     // Actions
+    setIsRoomLocked: React.Dispatch<React.SetStateAction<boolean>>;
     joinRoom: (roomId: string, forceReconnect?: boolean) => void;
     leaveRoom: () => void;
     updatePeerStream: (peerId: string, stream: MediaStream) => void;
@@ -39,6 +41,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
     const [peers, setPeers] = useState<Map<string, Peer>>(new Map());
     const [isConnected, setIsConnected] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
+    const [isRoomLocked, setIsRoomLocked] = useState(false);
     const [connectionAttempts, setConnectionAttempts] = useState(0);
 
     const reconnectAttemptRef = useRef(0);
@@ -398,9 +401,11 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
         room,
         roomId,
         peers,
+        isRoomLocked,
         isConnected,
         isReconnecting,
         connectionAttempts,
+        setIsRoomLocked,
         joinRoom,
         leaveRoom,
         updatePeerStream,
