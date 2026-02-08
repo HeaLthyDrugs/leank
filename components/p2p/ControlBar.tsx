@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Monitor, Crown } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Monitor, Users } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 interface ControlBarProps {
   isAudioEnabled: boolean;
   isVideoEnabled: boolean;
+  isHost: boolean;
   onToggleAudio: () => void;
   onToggleVideo: () => void;
   onLeave: () => void;
@@ -19,6 +20,7 @@ interface ControlBarProps {
 export function ControlBar({
   isAudioEnabled,
   isVideoEnabled,
+  isHost,
   onToggleAudio,
   onToggleVideo,
   onLeave,
@@ -35,7 +37,7 @@ export function ControlBar({
       {/* Logo - hidden on mobile, shown on desktop */}
       <div className="hidden md:flex md:flex-col md:items-center w-full">
         <div className="w-full aspect-square flex items-center justify-center">
-          <Logo size="lg" showText={false} />
+          <Logo size="md" showText={false} />
         </div>
         {/* Separator - Full width on desktop */}
         <div className="w-full h-px border-b-2 border-black" />
@@ -81,12 +83,12 @@ export function ControlBar({
         </Tooltip>
 
         {onHostControl && (
-          <Tooltip content="Host Controls" position="right">
+          <Tooltip content="Peers" position="right">
             <button
               onClick={onHostControl}
               className="w-12 h-12 flex items-center justify-center border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all"
             >
-              <Crown size={20} />
+              <Users size={20} />
             </button>
           </Tooltip>
         )}

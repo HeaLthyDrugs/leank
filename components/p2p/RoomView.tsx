@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useMedia } from '@/hooks/useMedia';
 import { useChat } from '@/hooks/useChat';
@@ -9,9 +10,8 @@ import { usePeerConnection } from '@/hooks/usePeerConnection';
 import { VideoGrid } from './VideoGrid';
 import { ChatPanel } from './ChatPanel';
 import { ControlBar } from './ControlBar';
-import { HostPanel } from './HostPanel';
-import { Logo } from '@/components/ui/Logo';
-import { Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { PeersPanel } from './PeersPanel';
+import { Loader2, RefreshCw, WifiOff } from 'lucide-react';
 
 interface RoomViewProps {
   roomId: string;
@@ -19,6 +19,8 @@ interface RoomViewProps {
 }
 
 export function RoomView({ roomId, onLeave }: RoomViewProps) {
+  const searchParams = useSearchParams();
+
   // Use shared room context
   const {
     room,
@@ -26,16 +28,38 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     isConnected,
     isReconnecting,
     connectionAttempts,
+    isHost,
     updatePeerStream,
     joinRoom,
     leaveRoom,
-    forceReconnect
+    forceReconnect,
+    setIsHost,
+    mutePeer,
+    unmutePeer,
+    stopPeerVideo,
+    removePeer,
+    muteAllPeers,
+    stopAllVideo
   } = useRoomContext();
 
   const { localStream, isAudioEnabled, isVideoEnabled, startMedia, toggleAudio, toggleVideo, startScreenShare } = useMedia();
   const { messages, sendMessage, typingPeers, broadcastTypingStatus } = useChat(room);
   const { transfers, sendFile } = useFileShare(room);
-  const [activePanel, setActivePanel] = useState<'chat' | 'host' | null>('chat');
+  const [activePanel, setActivePanel] = useState<'chat' | 'host' | null>(null);
+
+  // Set host status from URL params or localStorage on mount
+  useEffect(() => {
+    const hostParam = searchParams.get('host');
+    if (hostParam === 'true') {
+      setIsHost(true);
+    } else if (typeof window !== 'undefined') {
+      // Fall back to localStorage (set by lobby page)
+      const storedHostStatus = localStorage.getItem(`room_${roomId}_host`);
+      if (storedHostStatus === 'true') {
+        setIsHost(true);
+      }
+    }
+  }, [searchParams, setIsHost, roomId]);
 
   // Handle leaving the room properly
   const handleLeave = () => {
@@ -158,6 +182,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
       <ControlBar
         isAudioEnabled={isAudioEnabled}
         isVideoEnabled={isVideoEnabled}
+        isHost={isHost}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
         onLeave={handleLeave}
@@ -216,9 +241,11 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
               onTypingChange={broadcastTypingStatus}
             />
           ) : (
-            <HostPanel
+            <PeersPanel
               isOpen={true}
               onClose={() => setActivePanel(null)}
+              peers={peers}
+              roomId={roomId}
             />
           )}
         </div>

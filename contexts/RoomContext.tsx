@@ -7,6 +7,8 @@ import { TRYSTERO_CONFIG } from '@/lib/trystero-config';
 export interface Peer {
     id: string;
     stream?: MediaStream;
+    isMuted?: boolean;
+    isVideoStopped?: boolean;
 }
 
 interface RoomContextType {
@@ -17,12 +19,20 @@ interface RoomContextType {
     isConnected: boolean;
     isReconnecting: boolean;
     connectionAttempts: number;
+    isHost: boolean;
 
     // Actions
     joinRoom: (roomId: string, forceReconnect?: boolean) => void;
     leaveRoom: () => void;
     updatePeerStream: (peerId: string, stream: MediaStream) => void;
     forceReconnect: () => void;
+    setIsHost: (value: boolean) => void;
+    mutePeer: (peerId: string) => void;
+    unmutePeer: (peerId: string) => void;
+    stopPeerVideo: (peerId: string) => void;
+    removePeer: (peerId: string) => void;
+    muteAllPeers: () => void;
+    stopAllVideo: () => void;
 }
 
 const RoomContext = createContext<RoomContextType | null>(null);
@@ -40,6 +50,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
     const [isConnected, setIsConnected] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
     const [connectionAttempts, setConnectionAttempts] = useState(0);
+    const [isHost, setIsHost] = useState(false);
 
     const reconnectAttemptRef = useRef(0);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -394,6 +405,107 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
+    // Host management functions
+    const mutePeer = useCallback((peerId: string) => {
+        console.log('[RoomContext] Muting peer:', peerId);
+        if (!currentRoomRef.current) return;
+
+        try {
+            const [sendHostCommand] = currentRoomRef.current.makeAction('host-command');
+            sendHostCommand({ type: 'mute', targetPeerId: peerId }, peerId);
+
+            // Update local state
+            setPeers((prev) => {
+                const updated = new Map(prev);
+                const peer = updated.get(peerId);
+                if (peer) {
+                    updated.set(peerId, { ...peer, isMuted: true });
+                }
+                return updated;
+            });
+        } catch (e) {
+            console.error('[RoomContext] Error muting peer:', e);
+        }
+    }, []);
+
+    const unmutePeer = useCallback((peerId: string) => {
+        console.log('[RoomContext] Unmuting peer:', peerId);
+        if (!currentRoomRef.current) return;
+
+        try {
+            const [sendHostCommand] = currentRoomRef.current.makeAction('host-command');
+            sendHostCommand({ type: 'unmute', targetPeerId: peerId }, peerId);
+
+            setPeers((prev) => {
+                const updated = new Map(prev);
+                const peer = updated.get(peerId);
+                if (peer) {
+                    updated.set(peerId, { ...peer, isMuted: false });
+                }
+                return updated;
+            });
+        } catch (e) {
+            console.error('[RoomContext] Error unmuting peer:', e);
+        }
+    }, []);
+
+    const stopPeerVideo = useCallback((peerId: string) => {
+        console.log('[RoomContext] Stopping video for peer:', peerId);
+        if (!currentRoomRef.current) return;
+
+        try {
+            const [sendHostCommand] = currentRoomRef.current.makeAction('host-command');
+            sendHostCommand({ type: 'stop-video', targetPeerId: peerId }, peerId);
+
+            setPeers((prev) => {
+                const updated = new Map(prev);
+                const peer = updated.get(peerId);
+                if (peer) {
+                    updated.set(peerId, { ...peer, isVideoStopped: true });
+                }
+                return updated;
+            });
+        } catch (e) {
+            console.error('[RoomContext] Error stopping peer video:', e);
+        }
+    }, []);
+
+    const removePeer = useCallback((peerId: string) => {
+        console.log('[RoomContext] Removing peer:', peerId);
+        if (!currentRoomRef.current) return;
+
+        try {
+            const [sendHostCommand] = currentRoomRef.current.makeAction('host-command');
+            sendHostCommand({ type: 'kick', targetPeerId: peerId }, peerId);
+
+            // Remove from local state after a brief delay to allow the command to be sent
+            setTimeout(() => {
+                peerHeartbeatsRef.current.delete(peerId);
+                setPeers((prev) => {
+                    const updated = new Map(prev);
+                    updated.delete(peerId);
+                    return updated;
+                });
+            }, 500);
+        } catch (e) {
+            console.error('[RoomContext] Error removing peer:', e);
+        }
+    }, []);
+
+    const muteAllPeers = useCallback(() => {
+        console.log('[RoomContext] Muting all peers');
+        peers.forEach((_, peerId) => {
+            mutePeer(peerId);
+        });
+    }, [peers, mutePeer]);
+
+    const stopAllVideo = useCallback(() => {
+        console.log('[RoomContext] Stopping all video');
+        peers.forEach((_, peerId) => {
+            stopPeerVideo(peerId);
+        });
+    }, [peers, stopPeerVideo]);
+
     const value: RoomContextType = {
         room,
         roomId,
@@ -401,10 +513,18 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
         isConnected,
         isReconnecting,
         connectionAttempts,
+        isHost,
         joinRoom,
         leaveRoom,
         updatePeerStream,
-        forceReconnect
+        forceReconnect,
+        setIsHost,
+        mutePeer,
+        unmutePeer,
+        stopPeerVideo,
+        removePeer,
+        muteAllPeers,
+        stopAllVideo
     };
 
     return (
