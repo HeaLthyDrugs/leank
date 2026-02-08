@@ -201,8 +201,8 @@ export function ChatPanel({
   return (
     <div
       className={`flex flex-col bg-white transition-all duration-300 ease-in-out ${isFullscreen
-          ? 'fixed inset-0 z-50'
-          : 'h-full'
+        ? 'fixed inset-0 z-50'
+        : 'h-full'
         }`}
       style={{
         transform: isFullscreen ? 'scale(1)' : 'scale(1)',
@@ -226,7 +226,7 @@ export function ChatPanel({
           )}
           <button
             onClick={toggleFullscreen}
-            className="w-10 h-10 flex items-center justify-center border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all duration-200"
+            className="hidden md:flex w-10 h-10 items-center justify-center border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all duration-200"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
             {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}

@@ -9,6 +9,7 @@ import { usePeerConnection } from '@/hooks/usePeerConnection';
 import { VideoGrid } from './VideoGrid';
 import { ChatPanel } from './ChatPanel';
 import { ControlBar } from './ControlBar';
+import { HostPanel } from './HostPanel';
 import { Logo } from '@/components/ui/Logo';
 import { Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
@@ -34,7 +35,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   const { localStream, isAudioEnabled, isVideoEnabled, startMedia, toggleAudio, toggleVideo, startScreenShare } = useMedia();
   const { messages, sendMessage, typingPeers, broadcastTypingStatus } = useChat(room);
   const { transfers, sendFile } = useFileShare(room);
-  const [showChat, setShowChat] = useState(true);
+  const [activePanel, setActivePanel] = useState<'chat' | 'host' | null>('chat');
 
   // Handle leaving the room properly
   const handleLeave = () => {
@@ -98,6 +99,14 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     }
   };
 
+  const toggleChat = () => {
+    setActivePanel(prev => prev === 'chat' ? null : 'chat');
+  };
+
+  const toggleHostPanel = () => {
+    setActivePanel(prev => prev === 'host' ? null : 'host');
+  };
+
   return (
     <div className="h-screen w-screen bg-white flex flex-col-reverse md:flex-row overflow-hidden relative">
       {/* Connection Overlay */}
@@ -152,8 +161,9 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
         onLeave={handleLeave}
-        onToggleChat={() => setShowChat(!showChat)}
+        onToggleChat={toggleChat}
         onScreenShare={handleScreenShare}
+        onHostControl={toggleHostPanel}
       />
 
       {/* 2. Main Content Area */}
@@ -161,8 +171,6 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
         {/* Header / Info Bar */}
         <div className="absolute top-0 left-0 right-0 z-10 p-4 pointer-events-none">
           <div className="inline-flex items-center gap-4 bg-white border-2 border-black px-4 py-2 pointer-events-auto shadow-sm">
-            <Logo size="sm" variant="light" showText={false} />
-            <div className="h-6 w-px bg-gray-300" />
             <div>
               <p className="text-sm font-bold uppercase tracking-wide text-black">
                 {roomId.slice(0, 8).toUpperCase()}
@@ -170,7 +178,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
               <div className="flex items-center gap-2">
                 {isConnected ? (
                   <>
-                    <Wifi size={12} className="text-green-600" />
+                    {/* <Wifi size={12} className="text-green-600" /> */}
                     <p className="text-xs font-mono text-green-600">
                       {peers.size} PEER{peers.size !== 1 ? 'S' : ''} CONNECTED
                     </p>
@@ -194,21 +202,27 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
         </div>
       </div>
 
-      {/* 3. Chat Panel (Right Sidebar on Desktop, Overlay on Mobile) */}
-      {showChat && (
+      {/* 3. Side Panel (Chat or Host) */}
+      {activePanel !== null && (
         <div className="absolute inset-0 z-30 md:static md:w-[400px] md:border-l-2 md:border-black bg-white flex flex-col">
-          <ChatPanel
-            messages={messages}
-            onSendMessage={sendMessage}
-            transfers={transfers}
-            onSendFile={sendFile}
-            onClose={() => setShowChat(false)}
-            typingPeers={typingPeers}
-            onTypingChange={broadcastTypingStatus}
-          />
+          {activePanel === 'chat' ? (
+            <ChatPanel
+              messages={messages}
+              onSendMessage={sendMessage}
+              transfers={transfers}
+              onSendFile={sendFile}
+              onClose={() => setActivePanel(null)}
+              typingPeers={typingPeers}
+              onTypingChange={broadcastTypingStatus}
+            />
+          ) : (
+            <HostPanel
+              isOpen={true}
+              onClose={() => setActivePanel(null)}
+            />
+          )}
         </div>
       )}
     </div>
   );
 }
-
