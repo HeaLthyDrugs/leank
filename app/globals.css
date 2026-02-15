@@ -32,3 +32,13 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accents-4);
 }
+
+/* Speaking indicator pulse animation */
+@keyframes speakingPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}

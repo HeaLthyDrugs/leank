@@ -59,6 +59,17 @@ export function useMedia() {
     }
   }, [localStream]);
 
+  // Programmatic audio control (for host mute/unmute commands)
+  const setAudioEnabled = useCallback((enabled: boolean) => {
+    if (localStream) {
+      const audioTrack = localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = enabled;
+        setIsAudioEnabled(enabled);
+      }
+    }
+  }, [localStream]);
+
   const startScreenShare = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
@@ -84,6 +95,7 @@ export function useMedia() {
     stopMedia,
     toggleAudio,
     toggleVideo,
+    setAudioEnabled,
     startScreenShare
   };
 }

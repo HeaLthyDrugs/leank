@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useMedia } from '@/hooks/useMedia';
 import { useChat } from '@/hooks/useChat';
 import { useFileShare } from '@/hooks/useFileShare';
 import { usePeerConnection } from '@/hooks/usePeerConnection';
+import { useAudioLevel } from '@/hooks/useAudioLevel';
+import { useAudioStatus } from '@/hooks/useAudioStatus';
 import { VideoGrid } from './VideoGrid';
 import { ChatPanel } from './ChatPanel';
 import { ControlBar } from './ControlBar';
@@ -42,11 +44,27 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     stopAllVideo
   } = useRoomContext();
 
-  const { localStream, isAudioEnabled, isVideoEnabled, startMedia, toggleAudio, toggleVideo, startScreenShare } = useMedia();
+  const {
+    localStream,
+    isAudioEnabled,
+    isVideoEnabled,
+    startMedia,
+    toggleAudio,
+    toggleVideo,
+    setAudioEnabled,
+    startScreenShare
+  } = useMedia();
+
   const { messages, sendMessage, typingPeers, broadcastTypingStatus } = useChat(room);
   const { transfers, sendFile } = useFileShare(room);
   const [activePanel, setActivePanel] = useState<'chat' | 'host' | null>(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+
+  // Audio level detection for local user
+  const { isSpeaking: localIsSpeaking } = useAudioLevel(localStream, isAudioEnabled);
+
+  // Broadcast and receive audio status across peers
+  const { peerAudioStatuses } = useAudioStatus(room, localIsSpeaking, !isAudioEnabled);
 
   // Set host status from URL params or localStorage on mount
   useEffect(() => {
@@ -96,6 +114,44 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     };
     initMedia();
   }, [startMedia]);
+
+  // Listen for host commands (mute, unmute, stop-video, kick)
+  useEffect(() => {
+    if (!room) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [, receiveHostCommand] = room.makeAction('host-command') as unknown as [
+      (data: any, peerId?: string) => void,
+      (callback: (data: any, peerId: string) => void) => void
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    receiveHostCommand((data: any, peerId: string) => {
+      console.log('[RoomView] Received host command from:', peerId, 'type:', data.type);
+
+      switch (data.type) {
+        case 'mute':
+          console.log('[RoomView] Host requested mute');
+          setAudioEnabled(false);
+          break;
+        case 'unmute':
+          console.log('[RoomView] Host requested unmute');
+          setAudioEnabled(true);
+          break;
+        case 'stop-video':
+          console.log('[RoomView] Host requested stop video');
+          if (isVideoEnabled) {
+            toggleVideo();
+          }
+          break;
+        case 'kick':
+          console.log('[RoomView] Host kicked us from room');
+          handleLeave();
+          break;
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room, setAudioEnabled, toggleVideo]);
 
   const handleScreenShare = async () => {
     if (isScreenSharing) {
@@ -235,7 +291,6 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
               <div className="flex items-center gap-2">
                 {isConnected ? (
                   <>
-                    {/* <Wifi size={12} className="text-green-600" /> */}
                     <p className="text-xs font-mono text-green-600">
                       {peers.size} PEER{peers.size !== 1 ? 'S' : ''} CONNECTED
                     </p>
@@ -255,7 +310,14 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
 
         {/* Video Grid */}
         <div className="flex-1 overflow-hidden bg-gray-50 relative">
-          <VideoGrid localStream={localStream} peers={peers} isVideoEnabled={isVideoEnabled} />
+          <VideoGrid
+            localStream={localStream}
+            peers={peers}
+            isVideoEnabled={isVideoEnabled}
+            isAudioEnabled={isAudioEnabled}
+            localIsSpeaking={localIsSpeaking}
+            peerAudioStatuses={peerAudioStatuses}
+          />
         </div>
       </div>
 

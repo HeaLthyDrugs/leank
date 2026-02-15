@@ -9,6 +9,7 @@ export interface Peer {
     stream?: MediaStream;
     isMuted?: boolean;
     isVideoStopped?: boolean;
+    isSpeaking?: boolean;
 }
 
 interface RoomContextType {
@@ -25,6 +26,7 @@ interface RoomContextType {
     joinRoom: (roomId: string, forceReconnect?: boolean) => void;
     leaveRoom: () => void;
     updatePeerStream: (peerId: string, stream: MediaStream) => void;
+    updatePeerAudioStatus: (peerId: string, isSpeaking: boolean, isMuted: boolean) => void;
     forceReconnect: () => void;
     setIsHost: (value: boolean) => void;
     mutePeer: (peerId: string) => void;
@@ -296,6 +298,19 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
         });
     }, []);
 
+    // Update peer audio status (speaking / muted)
+    const updatePeerAudioStatus = useCallback((peerId: string, isSpeaking: boolean, isMuted: boolean) => {
+        setPeers((prev) => {
+            const peer = prev.get(peerId);
+            if (!peer) return prev;
+            // Only update if values actually changed to avoid unnecessary re-renders
+            if (peer.isSpeaking === isSpeaking && peer.isMuted === isMuted) return prev;
+            const updated = new Map(prev);
+            updated.set(peerId, { ...peer, isSpeaking, isMuted });
+            return updated;
+        });
+    }, []);
+
     // Initialize from sessionStorage on mount
     useEffect(() => {
         if (isInitializedRef.current) return;
@@ -517,6 +532,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
         joinRoom,
         leaveRoom,
         updatePeerStream,
+        updatePeerAudioStatus,
         forceReconnect,
         setIsHost,
         mutePeer,

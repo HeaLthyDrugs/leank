@@ -1,25 +1,31 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Peer } from '@/hooks/useRoom';
+import { Peer } from '@/contexts/RoomContext';
+import { PeerAudioStatus } from '@/hooks/useAudioStatus';
+import { MicOff } from 'lucide-react';
 
 interface VideoGridProps {
   localStream: MediaStream | null;
   peers: Map<string, Peer>;
   isVideoEnabled: boolean;
+  isAudioEnabled: boolean;
+  localIsSpeaking: boolean;
+  peerAudioStatuses: Map<string, PeerAudioStatus>;
 }
 
-export function VideoGrid({ localStream, peers, isVideoEnabled }: VideoGridProps) {
+export function VideoGrid({
+  localStream,
+  peers,
+  isVideoEnabled,
+  isAudioEnabled,
+  localIsSpeaking,
+  peerAudioStatuses,
+}: VideoGridProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    console.log('[VideoGrid] Local stream:', !!localStream, 'Video enabled:', isVideoEnabled);
-    console.log('[VideoGrid] Peers with streams:', Array.from(peers.values()).filter(p => p.stream).length);
-  }, [localStream, isVideoEnabled, peers]);
-
-  useEffect(() => {
     if (localVideoRef.current && localStream) {
-      console.log('[VideoGrid] Setting local stream');
       localVideoRef.current.srcObject = localStream;
       localVideoRef.current.play().catch(e => console.error('[VideoGrid] Local video play error:', e));
     }
@@ -38,7 +44,13 @@ export function VideoGrid({ localStream, peers, isVideoEnabled }: VideoGridProps
 
   return (
     <div className={`grid gap-4 h-full p-4 ${getGridClass()}`}>
-      <div className="relative border-2 border-black bg-white">
+      {/* Local user video tile */}
+      <VideoTile
+        isSpeaking={localIsSpeaking && isAudioEnabled}
+        isMuted={!isAudioEnabled}
+        label="You"
+        sublabel={localStream ? '(Live)' : '(No Stream)'}
+      >
         {isVideoEnabled && localStream ? (
           <video
             ref={localVideoRef}
@@ -54,31 +66,104 @@ export function VideoGrid({ localStream, peers, isVideoEnabled }: VideoGridProps
             </div>
           </div>
         )}
-        <div className="absolute bottom-0 left-0 bg-black text-white text-xs px-2 py-1 font-mono uppercase">
-          You {localStream ? '(Live)' : '(No Stream)'}
-        </div>
-      </div>
+      </VideoTile>
 
-      {peerArray.map((peer) => (
-        <PeerVideo key={peer.id} peer={peer} />
-      ))}
+      {/* Peer video tiles */}
+      {peerArray.map((peer) => {
+        const audioStatus = peerAudioStatuses.get(peer.id);
+        return (
+          <PeerVideo
+            key={peer.id}
+            peer={peer}
+            audioStatus={audioStatus}
+          />
+        );
+      })}
     </div>
   );
 }
 
-function PeerVideo({ peer }: { peer: Peer }) {
+/** Wrapper tile with speaking indicator border and mute icon */
+function VideoTile({
+  isSpeaking,
+  isMuted,
+  label,
+  sublabel,
+  children,
+}: {
+  isSpeaking: boolean;
+  isMuted: boolean;
+  label: string;
+  sublabel?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="relative bg-white transition-all duration-300 ease-in-out"
+      style={{
+        border: isSpeaking
+          ? '3px solid #22c55e'
+          : '2px solid black',
+        boxShadow: isSpeaking
+          ? '0 0 12px 2px rgba(34, 197, 94, 0.4), 0 0 24px 4px rgba(34, 197, 94, 0.15)'
+          : 'none',
+      }}
+    >
+      {children}
+
+      {/* Bottom label bar */}
+      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between">
+        <div className="bg-black text-white text-xs px-2 py-1 font-mono uppercase">
+          {label} {sublabel}
+        </div>
+
+        {/* Mute indicator */}
+        {isMuted && (
+          <div className="bg-red-600 text-white p-1 m-1 rounded-sm flex items-center gap-1">
+            <MicOff size={12} />
+            <span className="text-[10px] font-mono uppercase">Muted</span>
+          </div>
+        )}
+      </div>
+
+      {/* Speaking pulse animation ring */}
+      {isSpeaking && (
+        <div
+          className="absolute inset-0 pointer-events-none rounded-sm animate-[speakingPulse_1.5s_ease-in-out_infinite]"
+          style={{
+            border: '2px solid rgba(34, 197, 94, 0.5)',
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function PeerVideo({
+  peer,
+  audioStatus,
+}: {
+  peer: Peer;
+  audioStatus?: PeerAudioStatus;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (videoRef.current && peer.stream) {
-      console.log('[PeerVideo] Setting peer stream for:', peer.id);
       videoRef.current.srcObject = peer.stream;
       videoRef.current.play().catch(e => console.error('[PeerVideo] Peer video play error:', e));
     }
   }, [peer.stream, peer.id]);
 
+  const isSpeaking = audioStatus?.isSpeaking ?? peer.isSpeaking ?? false;
+  const isMuted = audioStatus?.isMuted ?? peer.isMuted ?? false;
+
   return (
-    <div className="relative border-2 border-black bg-white">
+    <VideoTile
+      isSpeaking={isSpeaking}
+      isMuted={isMuted}
+      label={`Peer ${peer.id.slice(0, 6)}`}
+    >
       {peer.stream ? (
         <video
           ref={videoRef}
@@ -93,9 +178,6 @@ function PeerVideo({ peer }: { peer: Peer }) {
           </div>
         </div>
       )}
-      <div className="absolute bottom-0 left-0 bg-black text-white text-xs px-2 py-1 font-mono uppercase">
-        Peer {peer.id.slice(0, 6)}
-      </div>
-    </div>
+    </VideoTile>
   );
 }
