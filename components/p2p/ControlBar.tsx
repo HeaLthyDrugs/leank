@@ -14,6 +14,7 @@ interface ControlBarProps {
   onLeave: () => void;
   onToggleChat: () => void;
   onScreenShare: () => void;
+  isScreenSharing?: boolean;
   onHostControl?: () => void;
 }
 
@@ -26,6 +27,7 @@ export function ControlBar({
   onLeave,
   onToggleChat,
   onScreenShare,
+  isScreenSharing = false,
   onHostControl
 }: ControlBarProps) {
 
@@ -64,10 +66,10 @@ export function ControlBar({
           </button>
         </Tooltip>
 
-        <Tooltip content="Screen Share" position="right">
+        <Tooltip content={isScreenSharing ? "Stop Sharing" : "Screen Share"} position="right">
           <button
             onClick={onScreenShare}
-            className="w-12 h-12 flex items-center justify-center border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all"
+            className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all ${isScreenSharing ? 'bg-black text-white hover:bg-white hover:text-black' : 'bg-white text-black hover:bg-black hover:text-white'}`}
           >
             <Monitor size={20} />
           </button>

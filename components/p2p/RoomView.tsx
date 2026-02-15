@@ -46,6 +46,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   const { messages, sendMessage, typingPeers, broadcastTypingStatus } = useChat(room);
   const { transfers, sendFile } = useFileShare(room);
   const [activePanel, setActivePanel] = useState<'chat' | 'host' | null>(null);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
 
   // Set host status from URL params or localStorage on mount
   useEffect(() => {
@@ -82,7 +83,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     console.log('[RoomView] Messages:', messages.length, 'SendMessage available:', !!sendMessage);
   }, [messages, sendMessage]);
 
-  usePeerConnection(room, localStream, updatePeerStream);
+  const { replaceTrack } = usePeerConnection(room, localStream, updatePeerStream);
 
   useEffect(() => {
     const initMedia = async () => {
@@ -97,6 +98,25 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   }, [startMedia]);
 
   const handleScreenShare = async () => {
+    if (isScreenSharing) {
+      // Stop screen share and revert to camera
+      console.log('[RoomView] Stopping screen share...');
+      const cameraStream = await startMedia(true, true);
+      if (cameraStream && localStream) {
+        const videoTrack = localStream.getVideoTracks()[0];
+        const newTrack = cameraStream.getVideoTracks()[0];
+
+        if (videoTrack && newTrack) {
+          replaceTrack(videoTrack, newTrack, localStream);
+          localStream.removeTrack(videoTrack);
+          localStream.addTrack(newTrack);
+          videoTrack.stop(); // Stop the screen share track
+        }
+      }
+      setIsScreenSharing(false);
+      return;
+    }
+
     const screenStream = await startScreenShare();
     if (!screenStream) {
       console.log('[RoomView] Screen share cancelled or failed');
@@ -104,12 +124,14 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     }
 
     console.log('[RoomView] Screen share started');
+    setIsScreenSharing(true);
 
     if (localStream) {
       const videoTrack = screenStream.getVideoTracks()[0];
       const sender = localStream.getVideoTracks()[0];
 
       if (sender) {
+        replaceTrack(sender, videoTrack, localStream);
         localStream.removeTrack(sender);
         sender.stop();
       }
@@ -117,8 +139,17 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
       localStream.addTrack(videoTrack);
 
       videoTrack.onended = async () => {
-        console.log('[RoomView] Screen share ended');
-        await startMedia(true, true);
+        console.log('[RoomView] Screen share ended by browser UI');
+        const cameraStream = await startMedia(true, true);
+        if (cameraStream) {
+          const newTrack = cameraStream.getVideoTracks()[0];
+          if (newTrack) {
+            replaceTrack(videoTrack, newTrack, localStream);
+            localStream.removeTrack(videoTrack);
+            localStream.addTrack(newTrack);
+          }
+        }
+        setIsScreenSharing(false);
       };
     }
   };
@@ -188,6 +219,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
         onLeave={handleLeave}
         onToggleChat={toggleChat}
         onScreenShare={handleScreenShare}
+        isScreenSharing={isScreenSharing}
         onHostControl={toggleHostPanel}
       />
 
