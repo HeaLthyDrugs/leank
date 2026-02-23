@@ -42,11 +42,18 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 selection:bg-black selection:text-white font-sans">
       <div className="w-full max-w-4xl">
-        <div className="flex flex-col items-center text-center mb-16">
-          <Logo size="xl" variant="light" />
-          <p className="text-xs md:text-sm text-black font-bold tracking-[0.2em] uppercase mt-8 border-2 border-black px-5 py-2.5 bg-black/5">
+        <div className="flex flex-col items-start text-center mb-10">
+          <Logo size="lg" variant="light" />
+          <p className="text-xs md:text-sm text-black font-bold tracking-[0.2em] uppercase mt-4 border-2 border-black px-5 py-2.5 bg-black/5">
             Peer-to-Peer Secure Communication
           </p>
+          <div className="flex flex-col sm:flex-row mt-4 items-center justify-center gap-4 text-[10px] md:text-sm font-bold text-black/50 uppercase tracking-[0.2em]">
+            <span className='text-xs'>End-to-End Encrypted</span>
+            <span className="w-1 h-1 bg-black/20 hidden sm:block"></span>
+            <span className='text-xs'>No Data Stored</span>
+            <span className="w-1 h-1 bg-black/20 hidden sm:block"></span>
+            <span className='text-xs'>P2P Network</span>
+          </div>
         </div>
 
         <div className="bg-white border-2 border-black rounded-none">
@@ -99,16 +106,9 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col items-center justify-center gap-6">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-[10px] md:text-sm font-bold text-black/50 uppercase tracking-[0.2em]">
-            <span>End-to-End Encrypted</span>
-            <span className="w-1.5 h-1.5 bg-black/20 hidden sm:block"></span>
-            <span>No Data Stored</span>
-            <span className="w-1.5 h-1.5 bg-black/20 hidden sm:block"></span>
-            <span>P2P Network</span>
-          </div>
+        <div className="mt-10 flex flex-col items-start justify-center gap-6">
 
-          <div className="flex items-center gap-6 text-[10px] md:text-xs font-bold text-black/40 uppercase tracking-widest">
+          <div className="flex items-start gap-6 text-[10px] md:text-xs font-bold text-black/40 uppercase tracking-widest">
             <Link href="/privacy" className="hover:text-black transition-colors cursor-pointer">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-black transition-colors cursor-pointer">Terms of Service</Link>
           </div>

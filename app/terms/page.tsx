@@ -5,15 +5,6 @@ import { ArrowLeft } from 'lucide-react';
 export default function TermsOfService() {
     return (
         <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white pb-20">
-            <div className="border-b-2 border-black bg-black/5 p-4 md:p-6">
-                <div className="max-w-4xl mx-auto flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 font-bold uppercase tracking-wider hover:opacity-70 transition-opacity">
-                        <ArrowLeft size={20} strokeWidth={2} />
-                        Back to Home
-                    </Link>
-                    <Logo size="sm" variant="light" showText={false} />
-                </div>
-            </div>
 
             <div className="max-w-3xl mx-auto px-6 pt-16">
                 <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-8">Terms of Service</h1>
