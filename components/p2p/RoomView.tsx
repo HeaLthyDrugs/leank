@@ -57,7 +57,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
 
   const { messages, sendMessage, typingPeers, broadcastTypingStatus } = useChat(room);
   const { transfers, sendFile } = useFileShare(room);
-  const [activePanel, setActivePanel] = useState<'chat' | 'host' | null>(null);
+  const [activePanel, setActivePanel] = useState<'chat' | 'host' | null>('chat');
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
   // Audio level detection for local user

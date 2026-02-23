@@ -46,30 +46,30 @@ export function ControlBar({
       </div>
 
       <div className="flex md:flex-col gap-4">
-        <Tooltip content={isAudioEnabled ? "Mute" : "Unmute"} position="right">
+        <Tooltip content="Coming Soon" position="right">
           <button
-            onClick={onToggleAudio}
-            className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all ${isAudioEnabled ? 'bg-black text-white hover:bg-white hover:text-black' : 'bg-red-600 border-red-600 text-white hover:bg-white hover:text-red-600'
+            disabled
+            className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all opacity-50 cursor-not-allowed ${isAudioEnabled ? 'bg-black text-white' : 'bg-red-600 border-red-600 text-white'
               }`}
           >
             {isAudioEnabled ? <Mic size={20} /> : <MicOff size={20} />}
           </button>
         </Tooltip>
 
-        <Tooltip content={isVideoEnabled ? "Blocking" : "Share"} position="right">
+        <Tooltip content="Coming Soon" position="right">
           <button
-            onClick={onToggleVideo}
-            className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all ${isVideoEnabled ? 'bg-black text-white hover:bg-white hover:text-black' : 'bg-red-600 border-red-600 text-white hover:bg-white hover:text-red-600'
+            disabled
+            className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all opacity-50 cursor-not-allowed ${isVideoEnabled ? 'bg-black text-white' : 'bg-red-600 border-red-600 text-white'
               }`}
           >
             {isVideoEnabled ? <Video size={20} /> : <VideoOff size={20} />}
           </button>
         </Tooltip>
 
-        <Tooltip content={isScreenSharing ? "Stop Sharing" : "Screen Share"} position="right">
+        <Tooltip content="Coming Soon" position="right">
           <button
-            onClick={onScreenShare}
-            className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all ${isScreenSharing ? 'bg-black text-white hover:bg-white hover:text-black' : 'bg-white text-black hover:bg-black hover:text-white'}`}
+            disabled
+            className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all opacity-50 cursor-not-allowed ${isScreenSharing ? 'bg-black text-white' : 'bg-white text-black'}`}
           >
             <Monitor size={20} />
           </button>
