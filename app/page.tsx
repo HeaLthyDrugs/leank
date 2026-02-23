@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { generateRoomId } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
-import { Users } from 'lucide-react';
+import { Users, ArrowRight, Plus } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
@@ -39,46 +40,78 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-      <div className="max-w-xl w-full">
-        <div className="text-center mb-16">
-          <div className="flex items-center justify-center mb-6">
-            <Logo size="xl" variant="light" />
-          </div>
-          <p className="text-lg text-gray-600 font-mono tracking-wide">P2P SECURE COMMUNICATION</p>
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 selection:bg-black selection:text-white font-sans">
+      <div className="w-full max-w-4xl">
+        <div className="flex flex-col items-center text-center mb-16">
+          <Logo size="xl" variant="light" />
+          <p className="text-xs md:text-sm text-black font-bold tracking-[0.2em] uppercase mt-8 border-2 border-black px-5 py-2.5 bg-black/5">
+            Peer-to-Peer Secure Communication
+          </p>
         </div>
 
-        <div className="bg-white border-2 border-black p-0">
-          <div className="p-8 border-b-2 border-black bg-gray-50">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-3 uppercase tracking-wider">
-              <Users size={20} />
-              New Session
-            </h2>
-            <Button onClick={handleCreateRoom} className="w-full" size="lg">
-              Start Room
-            </Button>
-          </div>
+        <div className="bg-white border-2 border-black rounded-none">
+          <div className="grid grid-cols-1 md:grid-cols-2">
 
-          <div className="p-8">
-            <h2 className="text-xl font-bold mb-6 uppercase tracking-wider">Join Session</h2>
-            <div className="space-y-4">
-              <input
-                type="text"
-                value={joinRoomId}
-                onChange={(e) => setJoinRoomId(e.target.value)}
-                placeholder="ENTER ROOM ID"
-                className="w-full px-6 py-4 border-2 border-gray-300 focus:border-black outline-none text-lg font-mono placeholder:text-gray-400 focus:bg-gray-50 transition-colors"
-                onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
-              />
-              <Button onClick={handleJoinRoom} variant="secondary" className="w-full" size="lg">
-                Join Room
+            {/* Create Session Section */}
+            <div className="p-8 md:p-12 border-b-2 md:border-b-0 md:border-r-2 border-black flex flex-col justify-between bg-black/5 hover:bg-black/10 transition-colors">
+              <div>
+                <div className="w-16 h-16 border-2 border-black flex items-center justify-center mb-8 bg-white">
+                  <Plus size={32} strokeWidth={2} />
+                </div>
+                <h2 className="text-3xl font-black mb-4 uppercase tracking-tight">New Session</h2>
+                <p className="text-base font-medium text-black/70 mb-10 leading-relaxed">
+                  Generate a secure room ID and start a new peer-to-peer session instantly.
+                </p>
+              </div>
+              <Button onClick={handleCreateRoom} className="w-full flex items-center justify-between group border-2" size="lg">
+                <span>Start Room</span>
+                <ArrowRight size={20} className="transform group-hover:translate-x-2 transition-transform" />
               </Button>
             </div>
+
+            {/* Join Session Section */}
+            <div className="p-8 md:p-12 flex flex-col justify-between bg-white">
+              <div>
+                <div className="w-16 h-16 border-2 border-black flex items-center justify-center mb-8 bg-black text-white">
+                  <Users size={32} strokeWidth={2} />
+                </div>
+                <h2 className="text-3xl font-black mb-4 uppercase tracking-tight">Join Session</h2>
+                <p className="text-base font-medium text-black/70 mb-10 leading-relaxed">
+                  Enter an existing room ID to connect with your peers securely.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  value={joinRoomId}
+                  onChange={(e) => setJoinRoomId(e.target.value)}
+                  placeholder="ENTER ROOM ID"
+                  className="w-full px-5 py-4 border-2 border-black outline-none text-base font-bold font-mono placeholder:text-black/30 focus:bg-black/5 transition-colors rounded-none uppercase tracking-wider"
+                  onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
+                />
+                <Button onClick={handleJoinRoom} variant="primary" className="w-full flex items-center justify-between group border-2" size="lg">
+                  <span>Join Room</span>
+                  <ArrowRight size={20} className="transform group-hover:translate-x-2 transition-transform" />
+                </Button>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div className="mt-12 text-center text-xs font-mono text-gray-400 uppercase tracking-widest">
-          <p>End-to-end encrypted • No data stored • P2P</p>
+        <div className="mt-16 flex flex-col items-center justify-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-[10px] md:text-sm font-bold text-black/50 uppercase tracking-[0.2em]">
+            <span>End-to-End Encrypted</span>
+            <span className="w-1.5 h-1.5 bg-black/20 hidden sm:block"></span>
+            <span>No Data Stored</span>
+            <span className="w-1.5 h-1.5 bg-black/20 hidden sm:block"></span>
+            <span>P2P Network</span>
+          </div>
+
+          <div className="flex items-center gap-6 text-[10px] md:text-xs font-bold text-black/40 uppercase tracking-widest">
+            <Link href="/privacy" className="hover:text-black transition-colors cursor-pointer">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-black transition-colors cursor-pointer">Terms of Service</Link>
+          </div>
         </div>
       </div>
     </div>

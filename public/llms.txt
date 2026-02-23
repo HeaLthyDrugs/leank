@@ -1,0 +1,9 @@
+# Leank - P2P Secure Communication
+
+Leank is a lightweight, strictly Peer-to-Peer (P2P) communication application built for instant video calls, voice chat, screen sharing, and file sharing directly inside the browser.
+
+## Features
+- **Zero Backend**: Data is streamed user-to-user utilizing WebRTC and simple-peer. Nothing is recorded or stored on any server.
+- **No Sign-up**: Sessions are created ad-hoc with securely generated room IDs.
+- **Minimalist Neo-Brutalist UI**: Focus on severe, high-contrast, black-and-white functional elements with zero rounded edges.
+- **Web Technologies**: Next.js (React), Tailwind CSS v4, Lucide React (Icons).

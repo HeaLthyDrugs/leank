@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://leank.vercel.app"),
   title: "Leank — Peer-to-Peer Calls, Chat & File Sharing",
   description:
     "Leank is a lightweight, browser-based communication tool for instant peer-to-peer video calls, voice chat, file sharing, and screen sharing — no login, no storage, no backend.",
@@ -29,6 +30,18 @@ export const metadata: Metadata = {
     "frontend-only SaaS",
     "privacy-first communication"
   ],
+  openGraph: {
+    title: "Leank — Peer-to-Peer Calls, Chat & File Sharing",
+    description: "Instant peer-to-peer video calls, voice chat, and file sharing running entirely in your browser with zero backend storage.",
+    url: "https://leank.vercel.app",
+    siteName: "Leank",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Leank — Peer-to-Peer Calls",
+    description: "Instant peer-to-peer communication. No login, no backend.",
+  },
   manifest: "/favicons/site.webmanifest",
   icons: {
     icon: [
