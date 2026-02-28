@@ -15,32 +15,32 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://leank.vercel.app"),
-  title: "Leank — Peer-to-Peer Calls, Chat & File Sharing",
+  title: "Leank — Instant Chat & File Sharing",
   description:
-    "Leank is a lightweight, browser-based communication tool for instant peer-to-peer video calls, voice chat, file sharing, and screen sharing — no login, no storage, no backend.",
+    "Connect instantly with friends or colleagues. Enjoy fast, secure chat and file sharing directly in your browser without any signups or downloads.",
   keywords: [
-    "P2P video call",
-    "WebRTC",
-    "voice chat app",
-    "screen sharing tool",
-    "peer-to-peer file transfer",
-    "Next.js WebRTC",
-    "real-time collaboration",
+    "instant chat",
+    "share files online",
     "no signup chat",
-    "frontend-only SaaS",
-    "privacy-first communication"
+    "browser chat",
+    "secure messaging",
+    "temporary chat room",
+    "fast file transfer",
+    "private communication",
+    "real-time chat",
+    "anonymous chat"
   ],
   openGraph: {
-    title: "Leank — Peer-to-Peer Calls, Chat & File Sharing",
-    description: "Instant peer-to-peer video calls, voice chat, and file sharing running entirely in your browser with zero backend storage.",
+    title: "Leank — Instant Chat & File Sharing",
+    description: "Start a free chat room and share files with just one click. No login required, entirely in your browser.",
     url: "https://leank.vercel.app",
     siteName: "Leank",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Leank — Peer-to-Peer Calls",
-    description: "Instant peer-to-peer communication. No login, no backend.",
+    title: "Leank — Instant Secure Chat",
+    description: "Chat and share files with anyone instantly. No login, no downloads.",
   },
   manifest: "/favicons/site.webmanifest",
   icons: {

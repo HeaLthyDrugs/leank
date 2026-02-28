@@ -45,14 +45,14 @@ export default function Home() {
         <div className="flex flex-col items-start text-center mb-10">
           <Logo size="lg" variant="light" />
           <p className="text-xs md:text-sm text-black font-bold tracking-[0.2em] uppercase mt-4 border-2 border-black px-5 py-2.5 bg-black/5">
-            Peer-to-Peer Secure Communication
+            Instant Secure Communication
           </p>
           <div className="flex flex-col sm:flex-row mt-4 items-center justify-center gap-4 text-[10px] md:text-sm font-bold text-black/50 uppercase tracking-[0.2em]">
-            <span className='text-xs'>End-to-End Encrypted</span>
+            <span className='text-xs'>Free & Private</span>
             <span className="w-1 h-1 bg-black/20 hidden sm:block"></span>
-            <span className='text-xs'>No Data Stored</span>
+            <span className='text-xs'>No Login Required</span>
             <span className="w-1 h-1 bg-black/20 hidden sm:block"></span>
-            <span className='text-xs'>P2P Network</span>
+            <span className='text-xs'>Works in Browser</span>
           </div>
         </div>
 
@@ -65,9 +65,9 @@ export default function Home() {
                 <div className="w-16 h-16 border-2 border-black flex items-center justify-center mb-8 bg-white">
                   <Plus size={32} strokeWidth={2} />
                 </div>
-                <h2 className="text-3xl font-black mb-4 uppercase tracking-tight">New Session</h2>
+                <h2 className="text-3xl font-black mb-4 uppercase tracking-tight">Create Room</h2>
                 <p className="text-base font-medium text-black/70 mb-10 leading-relaxed">
-                  Generate a secure room ID and start a new peer-to-peer session instantly.
+                  Start a private room instantly and share the link to begin chatting and sharing files.
                 </p>
               </div>
               <Button onClick={handleCreateRoom} className="w-full flex items-center justify-between group border-2" size="lg">
@@ -82,9 +82,9 @@ export default function Home() {
                 <div className="w-16 h-16 border-2 border-black flex items-center justify-center mb-8 bg-black text-white">
                   <Users size={32} strokeWidth={2} />
                 </div>
-                <h2 className="text-3xl font-black mb-4 uppercase tracking-tight">Join Session</h2>
+                <h2 className="text-3xl font-black mb-4 uppercase tracking-tight">Join Room</h2>
                 <p className="text-base font-medium text-black/70 mb-10 leading-relaxed">
-                  Enter an existing room ID to connect with your peers securely.
+                  Paste a room ID or join link to instantly connect with others and start chatting.
                 </p>
               </div>
               <div className="space-y-4">

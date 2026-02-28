@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChatMessage } from '@/hooks/useChat';
 import { FileTransfer } from '@/hooks/useFileShare';
 import { Send, Paperclip, Download, MessageSquare, Maximize2, Minimize2, X } from 'lucide-react';
@@ -29,6 +30,7 @@ export function ChatPanel({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingFilePreview, setPendingFilePreview] = useState<string | null>(null);
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const wasTypingRef = useRef(false);
@@ -121,7 +123,15 @@ export function ChatPanel({
       const fileType = getFileType(metadata.name);
 
       if (fileType === 'image') {
-        return <img src={`${metadata.previewurl}`} className='select-none w-full h-auto' draggable="false" alt="file preview" />;
+        return (
+          <img
+            src={`${metadata.previewurl}`}
+            className='select-none w-full h-auto cursor-pointer hover:opacity-90 transition-opacity'
+            draggable="false"
+            alt="file preview"
+            onClick={() => setFullScreenImage(metadata.previewurl)}
+          />
+        );
       } else if (fileType === 'document') {
         return <iframe className='w-full overflow-hidden' src={metadata.previewurl}></iframe>;
       } else if (fileType === 'video') {
@@ -408,6 +418,32 @@ export function ChatPanel({
           </button>
         </div>
       </div>
+
+      {/* Full Screen Image Modal using Portal to break out of containers */}
+      {fullScreenImage && typeof document !== 'undefined' && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center backdrop-blur-sm"
+          onClick={() => setFullScreenImage(null)}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+        >
+          <button
+            className="absolute top-4 right-4 md:top-6 md:right-6 text-white hover:text-gray-300 transition-colors bg-black/50 p-2 rounded-full cursor-pointer z-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              setFullScreenImage(null);
+            }}
+          >
+            <X size={32} />
+          </button>
+          <img
+            src={fullScreenImage}
+            alt="Full screen preview"
+            className="max-w-[95vw] max-h-[95vh] object-contain select-none z-40 relative"
+            onClick={(e) => e.stopPropagation()} // Prevent clicking image from closing
+          />
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

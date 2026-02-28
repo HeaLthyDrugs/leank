@@ -1,9 +1,0 @@
-```js
-// warning on console
-[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
-```
-- then 
-```
-npm i baseline-browser-mapping@latest -D
-```
-
