@@ -1,5 +1,3 @@
-# Leank - Secure, Serverless, Instant P2P Communication.
-
 ![Leank Header](./public/diagrams/header-image.png)
 
 Leank is a strictly Peer-to-Peer communication app for browser-based video calls, voice chat, and file sharing with zero backend storage.
@@ -75,3 +73,8 @@ npm run dev
 ```
 
 Navigate to [http://localhost:3000](http://localhost:3000) in your browser to view the application locally. Layout and logic changes will automatically update in the browser.
+
+Built with ❤️ by:
+
+- **[Developer 1 Name]** - [GitHub Profile Link]
+- **[Developer 2 Name]** - [GitHub Profile Link]
