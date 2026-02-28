@@ -76,5 +76,5 @@ Navigate to [http://localhost:3000](http://localhost:3000) in your browser to vi
 
 Built with ❤️ by:
 
-- **[Developer 1 Name]** - [GitHub Profile Link]
-- **[Developer 2 Name]** - [GitHub Profile Link]
+- **Rohit Khengare** - [https://github.com/iamcapacitor](https://github.com/iamcapacitor)
+- **Manish** - [https://github.com/HeaLthyDrugs](https://github.com/HeaLthyDrugs/)
