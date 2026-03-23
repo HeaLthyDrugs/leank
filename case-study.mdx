@@ -1,0 +1,58 @@
+# Leank — Peer-to-Peer Communication Without a Server
+
+A browser-based platform for video calls, chat, and file sharing that connects users directly to each other. No backend. No accounts. No data stored anywhere.
+
+---
+
+## The Problem
+
+Every mainstream communication tool routes your data through company servers — your calls, messages, and files pass through infrastructure you do not control. This introduces latency, privacy concerns, and dependency on third-party uptime. Users who want a quick, private conversation have no lightweight alternative that works without sign-up or downloads.
+
+---
+
+## The Solution
+
+Leank eliminates the middleman entirely by establishing direct browser-to-browser connections.
+
+- **Direct P2P video and voice calls** using WebRTC — no media server involved
+- **Encrypted text chat and file transfer** routed through the BitTorrent tracker network for peer discovery, then transmitted directly
+- **Instant sessions** via shareable room IDs — no accounts, no sign-up
+- **Zero data retention** — nothing is stored on any server, ever
+- **Dual WebRTC architecture** — separate optimized channels for media streams and data transfer
+
+---
+
+## How It Was Built
+
+The application uses a dual-connection architecture:
+
+1. **Peer discovery** happens through public BitTorrent trackers — both users search for the same room ID
+2. **Signaling data is exchanged** (ICE candidates, SDP) to establish a direct route between browsers
+3. **Two parallel WebRTC connections** are created — one optimized for real-time video/audio via `simple-peer`, another for text and files via `trystero`
+4. **Screen sharing** swaps the camera feed in-place on the existing connection — no new connection is created
+
+Once connected, the tracker disconnects entirely. All data flows browser-to-browser.
+
+---
+
+## Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| Next.js (React 19) | Application framework and routing |
+| TypeScript | Type-safe development |
+| Tailwind CSS v4 | Styling and UI system |
+| simple-peer | WebRTC video and audio streams |
+| trystero | P2P data channels via BitTorrent trackers |
+| Lucide React | Interface iconography |
+| ESLint | Code quality enforcement |
+
+---
+
+## Impact and Results
+
+- **Zero server cost** for communication infrastructure — no media servers, no storage, no database
+- **Sub-second connection setup** — users join a room and start talking immediately
+- **Complete privacy by architecture** — data never touches a server, making surveillance or data breaches structurally impossible
+- **No onboarding friction** — share a link, open in browser, start communicating
+- **Works on any modern browser** — no app install, no plugin, no extension required
