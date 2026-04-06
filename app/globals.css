@@ -44,8 +44,8 @@ body {
 }
 
 @theme inline {
-  --font-heading: var(--font-geist-sans);
-  --font-sans: var(--font-geist-sans);
+  --font-heading: var(--font-geist-mono);
+  --font-sans: var(--font-geist-mono);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
