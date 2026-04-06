@@ -8,6 +8,7 @@ import { useRoomState } from '@/hooks/useRoomState';
 import { Copy, Check, Users, ArrowRight, Clock, Loader2, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
+import { MediaPreview } from '@/components/p2p/MediaPreview';
 
 
 
@@ -131,63 +132,75 @@ export default function LobbyPage() {
           {/* Left Column: Room Info */}
           <div className="space-y-8">
             {isHost && (
-              <div className="bg-white border-2 border-black p-6 flex flex-col items-center justify-center space-y-6">
-                <div className="bg-white p-2 border-2 border-black">
-                  <QRCodeSVG value={roomLink} size={180} />
+              <div className="space-y-6">
+                <div className="bg-white border-2 border-black p-6 flex flex-col items-center justify-center space-y-6">
+                  <div className="bg-white p-2 border-2 border-black">
+                    <QRCodeSVG value={roomLink} size={180} />
+                  </div>
+                  <div className="w-full space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase mb-2">Room Link</label>
+                      <div className="flex">
+                        <input
+                          type="text"
+                          value={roomLink}
+                          readOnly
+                          className="flex-1 px-4 py-2 border-2 border-black border-r-0 text-xs font-mono bg-white outline-none"
+                        />
+                        <button
+                          onClick={() => copyToClipboard(roomLink, 'link', 'Room Link')}
+                          className="px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors border-2 border-black"
+                        >
+                          {copiedType === 'link' ? <Check size={16} /> : <Copy size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase mb-2">Room ID</label>
+                      <div className="flex">
+                        <input
+                          type="text"
+                          value={roomId}
+                          readOnly
+                          className="flex-1 px-4 py-2 border-2 border-black border-r-0 text-xs font-mono bg-white outline-none"
+                        />
+                        <button
+                          onClick={() => copyToClipboard(roomId, 'id', 'Room ID')}
+                          className="px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors border-2 border-black"
+                        >
+                          {copiedType === 'id' ? <Check size={16} /> : <Copy size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="w-full space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase mb-2">Room Link</label>
-                    <div className="flex">
-                      <input
-                        type="text"
-                        value={roomLink}
-                        readOnly
-                        className="flex-1 px-4 py-2 border-2 border-black border-r-0 text-xs font-mono bg-white outline-none"
-                      />
-                      <button
-                        onClick={() => copyToClipboard(roomLink, 'link', 'Room Link')}
-                        className="px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors border-2 border-black"
-                      >
-                        {copiedType === 'link' ? <Check size={16} /> : <Copy size={16} />}
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase mb-2">Room ID</label>
-                    <div className="flex">
-                      <input
-                        type="text"
-                        value={roomId}
-                        readOnly
-                        className="flex-1 px-4 py-2 border-2 border-black border-r-0 text-xs font-mono bg-white outline-none"
-                      />
-                      <button
-                        onClick={() => copyToClipboard(roomId, 'id', 'Room ID')}
-                        className="px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors border-2 border-black"
-                      >
-                        {copiedType === 'id' ? <Check size={16} /> : <Copy size={16} />}
-                      </button>
-                    </div>
-                  </div>
+                {/* Media Preview for Host */}
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-2">Device Preview</label>
+                  <MediaPreview />
                 </div>
               </div>
             )}
 
             {!isHost && (
-              <div className="flex flex-col items-center justify-center h-full min-h-[300px] border-2 border-dashed border-gray-300 p-8 text-center">
+              <div className="space-y-6">
                 {roomState.isSessionStarted ? (
-                  <div className="animate-pulse">
+                  <div className="flex flex-col items-center justify-center min-h-[200px] border-2 border-dashed border-gray-300 p-8 text-center animate-pulse">
                     <p className="text-xl font-bold mb-2">SESSION STARTED</p>
                     <p className="font-mono text-sm">REDIRECTING...</p>
                   </div>
                 ) : (
-                  <div>
-                    <Clock className="mx-auto mb-4 text-black" size={48} />
-                    <p className="text-xl font-black uppercase mb-2">Waiting</p>
-                    <p className="font-mono text-sm text-gray-500">HOST HAS NOT STARTED YET</p>
+                  <div className="flex flex-col items-center justify-center min-h-[100px] border-2 border-dashed border-gray-300 p-6 text-center">
+                    <Clock className="mx-auto mb-3 text-black" size={36} />
+                    <p className="text-lg font-black uppercase mb-1">Waiting</p>
+                    <p className="font-mono text-xs text-gray-500">HOST HAS NOT STARTED YET</p>
                   </div>
                 )}
+                {/* Media Preview for Non-Host */}
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-2">Device Preview</label>
+                  <MediaPreview />
+                </div>
               </div>
             )}
           </div>

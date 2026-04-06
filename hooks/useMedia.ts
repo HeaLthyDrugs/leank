@@ -6,6 +6,7 @@ export function useMedia() {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isAudioOnly, setIsAudioOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const startMedia = useCallback(async (audio = true, video = true) => {
@@ -14,6 +15,7 @@ export function useMedia() {
       setLocalStream(stream);
       setIsAudioEnabled(audio && stream.getAudioTracks().length > 0);
       setIsVideoEnabled(video && stream.getVideoTracks().length > 0);
+      setIsAudioOnly(!video);
       setError(null);
       return stream;
     } catch (err) {
@@ -22,6 +24,7 @@ export function useMedia() {
         setLocalStream(audioOnly);
         setIsAudioEnabled(true);
         setIsVideoEnabled(false);
+        setIsAudioOnly(true);
         setError(null);
         return audioOnly;
       } catch (audioErr) {
@@ -90,6 +93,7 @@ export function useMedia() {
     localStream,
     isAudioEnabled,
     isVideoEnabled,
+    isAudioOnly,
     error,
     startMedia,
     stopMedia,

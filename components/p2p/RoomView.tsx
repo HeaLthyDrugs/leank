@@ -105,9 +105,23 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
 
   useEffect(() => {
     const initMedia = async () => {
+      // Read lobby preferences
+      let prefAudio = true;
+      let prefVideo = true;
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = sessionStorage.getItem('leank_media_prefs');
+          if (saved) {
+            const prefs = JSON.parse(saved);
+            prefAudio = prefs.audio !== false;
+            prefVideo = prefs.video !== false;
+          }
+        } catch { /* use defaults */ }
+      }
+
       try {
-        const stream = await startMedia(true, true);
-        console.log('[RoomView] Media initialized:', !!stream);
+        const stream = await startMedia(prefAudio, prefVideo);
+        console.log('[RoomView] Media initialized:', !!stream, 'audio:', prefAudio, 'video:', prefVideo);
       } catch (err) {
         console.log('[RoomView] Media not available, continuing without camera/mic');
       }
@@ -270,6 +284,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
         isAudioEnabled={isAudioEnabled}
         isVideoEnabled={isVideoEnabled}
         isHost={isHost}
+        localIsSpeaking={localIsSpeaking}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
         onLeave={handleLeave}

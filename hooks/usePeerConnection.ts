@@ -108,5 +108,35 @@ export function usePeerConnection(
     };
   }, [room, localStream, onPeerStream]);
 
-  return { replaceTrack };
+  // Function to add a track to all connected peers
+  const addTrack = (track: MediaStreamTrack, stream: MediaStream) => {
+    console.log('[usePeerConnection] Adding track to', peersRef.current.size, 'peers');
+    peersRef.current.forEach((peer, peerId) => {
+      try {
+        if (!peer.destroyed) {
+          peer.addTrack(track, stream);
+          console.log('[usePeerConnection] Added track for peer:', peerId);
+        }
+      } catch (err) {
+        console.error('[usePeerConnection] Failed to add track for peer:', peerId, err);
+      }
+    });
+  };
+
+  // Function to remove a track from all connected peers
+  const removeTrack = (track: MediaStreamTrack, stream: MediaStream) => {
+    console.log('[usePeerConnection] Removing track from', peersRef.current.size, 'peers');
+    peersRef.current.forEach((peer, peerId) => {
+      try {
+        if (!peer.destroyed) {
+          peer.removeTrack(track, stream);
+          console.log('[usePeerConnection] Removed track for peer:', peerId);
+        }
+      } catch (err) {
+        console.error('[usePeerConnection] Failed to remove track for peer:', peerId, err);
+      }
+    });
+  };
+
+  return { replaceTrack, addTrack, removeTrack };
 }
