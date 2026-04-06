@@ -16,7 +16,8 @@ export default function LobbyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const roomId = params.roomId as string;
-  const [copied, setCopied] = useState(false);
+  const [copiedType, setCopiedType] = useState<'link' | 'id' | null>(null);
+  const [toast, setToast] = useState<{ id: number, message: string } | null>(null);
   const [roomLink, setRoomLink] = useState('');
   const [isHost, setIsHost] = useState(false);
   const [peerCount, setPeerCount] = useState(0);
@@ -55,10 +56,21 @@ export default function LobbyPage() {
     setPeerCount(newCount);
   }, [peers.size, peerCount]);
 
-  const copyToClipboard = (text: string) => {
+  const showToast = (message: string) => {
+    const id = Date.now();
+    setToast({ id, message });
+    setTimeout(() => {
+      setToast((current) => current?.id === id ? null : current);
+    }, 3000);
+  };
+
+  const copyToClipboard = (text: string, type: 'link' | 'id', label: string) => {
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedType(type);
+    showToast(`${label} copied!`);
+    setTimeout(() => {
+      setCopiedType((current) => current === type ? null : current);
+    }, 2000);
   };
 
   const handleStart = async () => {
@@ -134,10 +146,10 @@ export default function LobbyPage() {
                         className="flex-1 px-4 py-2 border-2 border-black border-r-0 text-xs font-mono bg-white outline-none"
                       />
                       <button
-                        onClick={() => copyToClipboard(roomLink)}
+                        onClick={() => copyToClipboard(roomLink, 'link', 'Room Link')}
                         className="px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors border-2 border-black"
                       >
-                        {copied ? <Check size={16} /> : <Copy size={16} />}
+                        {copiedType === 'link' ? <Check size={16} /> : <Copy size={16} />}
                       </button>
                     </div>
                   </div>
@@ -151,10 +163,10 @@ export default function LobbyPage() {
                         className="flex-1 px-4 py-2 border-2 border-black border-r-0 text-xs font-mono bg-white outline-none"
                       />
                       <button
-                        onClick={() => copyToClipboard(roomId)}
+                        onClick={() => copyToClipboard(roomId, 'id', 'Room ID')}
                         className="px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors border-2 border-black"
                       >
-                        {copied ? <Check size={16} /> : <Copy size={16} />}
+                        {copiedType === 'id' ? <Check size={16} /> : <Copy size={16} />}
                       </button>
                     </div>
                   </div>
@@ -256,6 +268,20 @@ export default function LobbyPage() {
           </div>
         </div>
       </div>
+
+      {/* Custom Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-6 z-50 flex items-center bg-white border-2 border-black shadow-[4px_4px_0_0_#000]">
+          <div className="bg-green-400 p-2 border-r-2 border-black flex items-center justify-center">
+            <Check size={14} className="text-black font-black" />
+          </div>
+          <div className="px-3 py-2 bg-white">
+            <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-black">
+              {toast.message}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
