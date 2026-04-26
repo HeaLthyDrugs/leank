@@ -167,7 +167,7 @@ function PeerVideo({
     <VideoTile
       isSpeaking={isSpeaking}
       isMuted={isMuted}
-      label={`Peer ${peer.id.slice(0, 6)}`}
+      label={`Peer ${(peer.participantId ?? peer.id).slice(0, 6)}`}
       sublabel={peer.stream && !hasVideo ? '(Audio Only)' : undefined}
     >
       {peer.stream && hasVideo ? (
@@ -180,7 +180,7 @@ function PeerVideo({
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 gap-2">
           <div className="w-24 h-24 border-2 border-black bg-white flex items-center justify-center text-black text-3xl font-bold">
-            {peer.id.slice(0, 2).toUpperCase()}
+            {(peer.participantId ?? peer.id).slice(0, 2).toUpperCase()}
           </div>
           {peer.stream && !hasVideo && (
             <span className="text-[10px] font-mono text-gray-500 uppercase">Audio Only</span>

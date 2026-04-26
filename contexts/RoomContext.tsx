@@ -1,22 +1,28 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { joinRoom as joinRoomBT, Room } from 'trystero/torrent';
 import { TRYSTERO_CONFIG } from '@/lib/trystero-config';
+import {
+    clearRoomJoinTimestamp,
+    getOrCreateParticipantSession,
+    getOrCreateRoomJoinTimestamp,
+    resolveRoomAuthority,
+} from '@/lib/room-participants';
+import type { ParticipantPresence, Peer, PresencePayload } from '@/types/room';
 
-export interface Peer {
-    id: string;
-    stream?: MediaStream;
-    isMuted?: boolean;
-    isVideoStopped?: boolean;
-    isSpeaking?: boolean;
-}
+export type { ParticipantPresence, Peer } from '@/types/room';
 
 interface RoomContextType {
     // Room state
     room: Room | null;
     roomId: string | null;
     peers: Map<string, Peer>;
+    participantId: string;
+    participantJoinedAt: number;
+    authorityParticipantId: string | null;
+    authorityPeerId: string | null;
+    isAuthority: boolean;
     isConnected: boolean;
     isReconnecting: boolean;
     connectionAttempts: number;
@@ -49,6 +55,8 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
     const [room, setRoom] = useState<Room | null>(null);
     const [roomId, setRoomId] = useState<string | null>(null);
     const [peers, setPeers] = useState<Map<string, Peer>>(new Map());
+    const [participantId, setParticipantId] = useState('');
+    const [participantJoinedAt, setParticipantJoinedAt] = useState(0);
     const [isConnected, setIsConnected] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
     const [connectionAttempts, setConnectionAttempts] = useState(0);
@@ -60,7 +68,89 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
     const currentRoomRef = useRef<Room | null>(null);
     const currentRoomIdRef = useRef<string | null>(null);
     const peerHeartbeatsRef = useRef<Map<string, number>>(new Map());
+    const participantIdRef = useRef('');
+    const participantJoinedAtRef = useRef(0);
+    const isHostRef = useRef(false);
+    const sendPresenceRef = useRef<((data: PresencePayload, peerId?: string) => void) | null>(null);
     const isInitializedRef = useRef(false);
+
+    const ensureParticipantSession = useCallback((targetRoomId?: string) => {
+        const session = getOrCreateParticipantSession();
+
+        if (!participantIdRef.current || participantIdRef.current !== session.participantId) {
+            participantIdRef.current = session.participantId;
+            setParticipantId(session.participantId);
+        }
+
+        if (targetRoomId) {
+            const joinedAt = getOrCreateRoomJoinTimestamp(targetRoomId);
+            participantJoinedAtRef.current = joinedAt;
+            setParticipantJoinedAt(joinedAt);
+
+            return {
+                participantId: session.participantId,
+                joinedAt,
+            };
+        }
+
+        return {
+            participantId: session.participantId,
+            joinedAt: participantJoinedAtRef.current,
+        };
+    }, []);
+
+    const updatePeerPresence = useCallback((peerId: string, presence: PresencePayload) => {
+        const lastSeenAt = Date.now();
+        peerHeartbeatsRef.current.set(peerId, lastSeenAt);
+
+        setPeers((prev) => {
+            const updated = new Map(prev);
+
+            for (const [existingPeerId, existingPeer] of updated.entries()) {
+                if (
+                    existingPeerId !== peerId &&
+                    existingPeer.participantId === presence.participantId
+                ) {
+                    updated.delete(existingPeerId);
+                    peerHeartbeatsRef.current.delete(existingPeerId);
+                }
+            }
+
+            const existingPeer = updated.get(peerId);
+
+            updated.set(peerId, {
+                id: peerId,
+                participantId: presence.participantId,
+                joinedAt: presence.joinedAt,
+                isHost: presence.isHost,
+                lastSeenAt,
+                stream: existingPeer?.stream,
+                isMuted: existingPeer?.isMuted,
+                isVideoStopped: existingPeer?.isVideoStopped,
+                isSpeaking: existingPeer?.isSpeaking,
+            });
+
+            return updated;
+        });
+    }, []);
+
+    const sendPresenceUpdate = useCallback((type: PresencePayload['type'], peerId?: string) => {
+        if (!sendPresenceRef.current) {
+            return;
+        }
+
+        const session = ensureParticipantSession();
+        sendPresenceRef.current(
+            {
+                type,
+                timestamp: Date.now(),
+                participantId: session.participantId,
+                isHost: isHostRef.current,
+                joinedAt: session.joinedAt,
+            },
+            peerId,
+        );
+    }, [ensureParticipantSession]);
 
     // Cleanup function - doesn't clear sessionStorage by default
     const cleanup = useCallback((clearSession = false) => {
@@ -87,8 +177,12 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
 
         if (clearSession && typeof window !== 'undefined') {
             sessionStorage.removeItem(SESSION_STORAGE_KEY);
+            if (currentRoomIdRef.current) {
+                clearRoomJoinTimestamp(currentRoomIdRef.current);
+            }
         }
 
+        sendPresenceRef.current = null;
         setRoom(null);
         setIsConnected(false);
         setPeers(new Map());
@@ -98,6 +192,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
     // Create room connection
     const createConnection = useCallback((targetRoomId: string): Room | null => {
         console.log('[RoomContext] Creating connection to room:', targetRoomId);
+        const session = ensureParticipantSession(targetRoomId);
         setConnectionAttempts(prev => prev + 1);
 
         // Clean up existing connection first (without clearing session)
@@ -135,19 +230,36 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
 
             // Handle peer join
             newRoom.onPeerJoin((peerId) => {
-                console.log('[RoomContext] ✅ Peer joined:', peerId);
+                console.log('[RoomContext] Peer joined:', peerId);
                 peerHeartbeatsRef.current.set(peerId, Date.now());
                 setPeers((prev) => {
                     const updated = new Map(prev);
-                    updated.set(peerId, { id: peerId });
+                    const existingPeer = updated.get(peerId);
+
+                    updated.set(peerId, {
+                        id: peerId,
+                        participantId: existingPeer?.participantId ?? null,
+                        joinedAt: existingPeer?.joinedAt ?? null,
+                        isHost: existingPeer?.isHost ?? false,
+                        lastSeenAt: Date.now(),
+                        stream: existingPeer?.stream,
+                        isMuted: existingPeer?.isMuted,
+                        isVideoStopped: existingPeer?.isVideoStopped,
+                        isSpeaking: existingPeer?.isSpeaking,
+                    });
+
                     console.log('[RoomContext] Total peers:', updated.size);
                     return updated;
                 });
+
+                window.setTimeout(() => {
+                    sendPresenceUpdate('announce', peerId);
+                }, 150);
             });
 
             // Handle peer leave
             newRoom.onPeerLeave((peerId) => {
-                console.log('[RoomContext] ❌ Peer left:', peerId);
+                console.log('[RoomContext] Peer left:', peerId);
                 peerHeartbeatsRef.current.delete(peerId);
                 setPeers((prev) => {
                     const updated = new Map(prev);
@@ -158,35 +270,49 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
             });
 
             // Setup presence heartbeat
-            const [sendPresence, receivePresence] = newRoom.makeAction('presence');
+            const [sendPresence, receivePresence] = newRoom.makeAction('presence') as unknown as [
+                (data: PresencePayload, peerId?: string) => void,
+                (callback: (data: PresencePayload, peerId: string) => void) => void
+            ];
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            receivePresence((data: any, peerId: string) => {
-                peerHeartbeatsRef.current.set(peerId, Date.now());
+            sendPresenceRef.current = sendPresence;
 
-                // If we receive presence from a peer we don't know, add them
-                setPeers((prev) => {
-                    if (!prev.has(peerId)) {
-                        console.log('[RoomContext] Adding peer from presence:', peerId);
-                        const updated = new Map(prev);
-                        updated.set(peerId, { id: peerId });
-                        return updated;
-                    }
-                    return prev;
-                });
+            receivePresence((data: PresencePayload, peerId: string) => {
+                if (
+                    !data ||
+                    typeof data.participantId !== 'string' ||
+                    typeof data.joinedAt !== 'number' ||
+                    typeof data.isHost !== 'boolean'
+                ) {
+                    return;
+                }
+
+                updatePeerPresence(peerId, data);
             });
 
             // Send initial presence immediately
-            sendPresence({ type: 'join', peerId: 'me', timestamp: Date.now() });
+            sendPresence({
+                type: 'join',
+                timestamp: Date.now(),
+                participantId: session.participantId,
+                isHost: isHostRef.current,
+                joinedAt: session.joinedAt,
+            });
 
             // Also send after a short delay to ensure peers receive it
-            setTimeout(() => {
-                sendPresence({ type: 'announce', peerId: 'me', timestamp: Date.now() });
+            window.setTimeout(() => {
+                sendPresence({
+                    type: 'announce',
+                    timestamp: Date.now(),
+                    participantId: session.participantId,
+                    isHost: isHostRef.current,
+                    joinedAt: session.joinedAt,
+                });
             }, 500);
 
             // Periodic heartbeat with peer cleanup
             presenceIntervalRef.current = setInterval(() => {
-                sendPresence({ type: 'heartbeat', peerId: 'me', timestamp: Date.now() });
+                sendPresenceUpdate('heartbeat');
 
                 // Check for stale peers
                 const now = Date.now();
@@ -209,10 +335,10 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
             setIsConnected(false);
             return null;
         }
-    }, []);
+    }, [ensureParticipantSession, sendPresenceUpdate, updatePeerPresence]);
 
     // Attempt reconnection with exponential backoff
-    const attemptReconnect = useCallback((targetRoomId: string) => {
+    const attemptReconnect = useCallback(function retryConnection(targetRoomId: string) {
         const attempt = reconnectAttemptRef.current;
 
         if (attempt >= MAX_RECONNECT_ATTEMPTS) {
@@ -233,7 +359,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
             const newRoom = createConnection(targetRoomId);
 
             if (!newRoom) {
-                attemptReconnect(targetRoomId);
+                retryConnection(targetRoomId);
             }
         }, delay);
     }, [createConnection]);
@@ -252,6 +378,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
     // Join a room
     const joinRoom = useCallback((newRoomId: string, forceReconnect = false) => {
         console.log('[RoomContext] joinRoom called with:', newRoomId, 'force:', forceReconnect);
+        ensureParticipantSession(newRoomId);
 
         // If already in this room and connected, don't rejoin unless forced
         if (!forceReconnect && roomId === newRoomId && isConnected && currentRoomRef.current) {
@@ -273,7 +400,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
 
         currentRoomIdRef.current = newRoomId;
         createConnection(newRoomId);
-    }, [roomId, isConnected, cleanup, createConnection]);
+    }, [roomId, isConnected, cleanup, createConnection, ensureParticipantSession]);
 
     // Leave room explicitly
     const leaveRoom = useCallback(() => {
@@ -292,7 +419,14 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
                 updated.set(peerId, { ...peer, stream });
             } else {
                 // Add peer if not exists
-                updated.set(peerId, { id: peerId, stream });
+                updated.set(peerId, {
+                    id: peerId,
+                    participantId: null,
+                    joinedAt: null,
+                    isHost: false,
+                    lastSeenAt: Date.now(),
+                    stream,
+                });
             }
             return updated;
         });
@@ -315,6 +449,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (isInitializedRef.current) return;
         isInitializedRef.current = true;
+        ensureParticipantSession();
 
         if (typeof window !== 'undefined') {
             const savedRoomId = sessionStorage.getItem(SESSION_STORAGE_KEY);
@@ -325,7 +460,15 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
                 createConnection(savedRoomId);
             }
         }
-    }, [createConnection]);
+    }, [createConnection, ensureParticipantSession]);
+
+    useEffect(() => {
+        isHostRef.current = isHost;
+
+        if (room && participantId) {
+            sendPresenceUpdate('announce');
+        }
+    }, [isHost, room, participantId, sendPresenceUpdate]);
 
     // Handle online/offline events
     useEffect(() => {
@@ -364,22 +507,14 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
                     reconnectAttemptRef.current = 0;
                     attemptReconnect(targetRoomId);
                 } else {
-                    // Send presence to announce we're back
-                    if (currentRoomRef.current) {
-                        try {
-                            const [sendPresence] = currentRoomRef.current.makeAction('presence');
-                            sendPresence({ type: 'visible', peerId: 'me', timestamp: Date.now() });
-                        } catch (e) {
-                            console.log('[RoomContext] Error sending visibility presence');
-                        }
-                    }
+                    sendPresenceUpdate('visible');
                 }
             }
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [isConnected, attemptReconnect]);
+    }, [isConnected, attemptReconnect, sendPresenceUpdate]);
 
     // Handle beforeunload - save state
     useEffect(() => {
@@ -521,10 +656,46 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
         });
     }, [peers, stopPeerVideo]);
 
+    const authority = useMemo(() => {
+        if (!participantId || !participantJoinedAt) {
+            return null;
+        }
+
+        const remoteParticipants: ParticipantPresence[] = Array.from(peers.values())
+            .filter((peer): peer is Peer & { participantId: string; joinedAt: number; lastSeenAt: number } =>
+                Boolean(peer.participantId) &&
+                typeof peer.joinedAt === 'number' &&
+                typeof peer.lastSeenAt === 'number',
+            )
+            .map((peer) => ({
+                participantId: peer.participantId,
+                transportId: peer.id,
+                joinedAt: peer.joinedAt,
+                isHost: peer.isHost,
+                lastSeenAt: peer.lastSeenAt,
+            }));
+
+        return resolveRoomAuthority(
+            {
+                participantId,
+                transportId: null,
+                joinedAt: participantJoinedAt,
+                isHost,
+                lastSeenAt: participantJoinedAt,
+            },
+            remoteParticipants,
+        );
+    }, [isHost, participantId, participantJoinedAt, peers]);
+
     const value: RoomContextType = {
         room,
         roomId,
         peers,
+        participantId,
+        participantJoinedAt,
+        authorityParticipantId: authority?.participantId ?? null,
+        authorityPeerId: authority?.transportId ?? null,
+        isAuthority: authority?.participantId === participantId,
         isConnected,
         isReconnecting,
         connectionAttempts,

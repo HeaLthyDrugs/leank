@@ -72,6 +72,20 @@ Run the development server:
 npm run dev
 ```
 
+### Shared YouTube Workspace Setup
+
+To enable the room-wide YouTube workspace, create a YouTube Data API v3 key and add it to `.env.local`:
+
+```bash
+NEXT_PUBLIC_YOUTUBE_API_KEY=your_youtube_api_key_here
+```
+
+Notes:
+
+- Only the active shared-workspace controller calls the YouTube search API, so quota usage is not multiplied by every participant in the room.
+- Playback uses the YouTube embedded player, so some videos may refuse embedding or playback in-room even when they are watchable on youtube.com.
+- Search requests go directly from each participant's browser to Google/YouTube when they become the active controller.
+
 Navigate to [http://localhost:3000](http://localhost:3000) in your browser to view the application locally. Layout and logic changes will automatically update in the browser.
 
 Built with ❤️ by:

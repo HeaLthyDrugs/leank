@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Monitor, Users } from 'lucide-react';
+import { Clapperboard, Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Monitor, Users } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Kbd } from '@/components/ui/kbd';
@@ -9,7 +9,6 @@ import { Kbd } from '@/components/ui/kbd';
 interface ControlBarProps {
   isAudioEnabled: boolean;
   isVideoEnabled: boolean;
-  isHost: boolean;
   localIsSpeaking?: boolean;
   onToggleAudio: () => void;
   onToggleVideo: () => void;
@@ -17,6 +16,8 @@ interface ControlBarProps {
   onToggleChat: () => void;
   onScreenShare: () => void;
   isScreenSharing?: boolean;
+  isYouTubeOpen?: boolean;
+  onToggleYouTube?: () => void;
   onHostControl?: () => void;
 }
 
@@ -41,7 +42,6 @@ function useIsMobile() {
 export function ControlBar({
   isAudioEnabled,
   isVideoEnabled,
-  isHost,
   localIsSpeaking = false,
   onToggleAudio,
   onToggleVideo,
@@ -49,6 +49,8 @@ export function ControlBar({
   onToggleChat,
   onScreenShare,
   isScreenSharing = false,
+  isYouTubeOpen = false,
+  onToggleYouTube,
   onHostControl
 }: ControlBarProps) {
   const isMobile = useIsMobile();
@@ -82,12 +84,19 @@ export function ControlBar({
           e.preventDefault();
           onToggleChat();
           break;
+        case 'y':
+          if (!onToggleYouTube) {
+            break;
+          }
+          e.preventDefault();
+          onToggleYouTube();
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onToggleAudio, onToggleVideo, onScreenShare, onToggleChat]);
+  }, [onToggleAudio, onToggleVideo, onScreenShare, onToggleChat, onToggleYouTube]);
 
   // Tooltip text
   const micTooltip = isAudioEnabled ? 'Mute' : 'Unmute';
@@ -185,6 +194,26 @@ export function ControlBar({
             )}
           </div>
         </Tooltip>
+
+        {onToggleYouTube && (
+          <Tooltip content={isYouTubeOpen ? 'Close YouTube' : 'Open YouTube'} position="right">
+            <div className="relative">
+              <button
+                onClick={onToggleYouTube}
+                className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-all ${
+                  isYouTubeOpen ? 'bg-black text-white hover:bg-gray-800' : 'bg-white text-black hover:bg-black hover:text-white'
+                }`}
+              >
+                <Clapperboard size={20} />
+              </button>
+              {!isMobile && (
+                <Kbd className="absolute -bottom-1 -right-1 h-4 min-w-4 text-[9px] px-0.5 bg-white text-black border border-black shadow-none">
+                  Y
+                </Kbd>
+              )}
+            </div>
+          </Tooltip>
+        )}
 
         {onHostControl && (
           <Tooltip content="Peers" position="right">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useMedia } from '@/hooks/useMedia';
@@ -9,10 +9,12 @@ import { useFileShare } from '@/hooks/useFileShare';
 import { usePeerConnection } from '@/hooks/usePeerConnection';
 import { useAudioLevel } from '@/hooks/useAudioLevel';
 import { useAudioStatus } from '@/hooks/useAudioStatus';
+import { useSharedYouTubeSession } from '@/hooks/useSharedYouTubeSession';
 import { VideoGrid } from './VideoGrid';
 import { ChatPanel } from './ChatPanel';
 import { ControlBar } from './ControlBar';
 import { PeersPanel } from './PeersPanel';
+import { YouTubeWorkspace } from './YouTubeWorkspace';
 import { Loader2, RefreshCw, WifiOff } from 'lucide-react';
 
 interface RoomViewProps {
@@ -30,18 +32,14 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     isConnected,
     isReconnecting,
     connectionAttempts,
+    participantId,
+    authorityParticipantId,
     isHost,
     updatePeerStream,
     joinRoom,
     leaveRoom,
     forceReconnect,
     setIsHost,
-    mutePeer,
-    unmutePeer,
-    stopPeerVideo,
-    removePeer,
-    muteAllPeers,
-    stopAllVideo
   } = useRoomContext();
 
   const {
@@ -65,6 +63,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
 
   // Broadcast and receive audio status across peers
   const { peerAudioStatuses } = useAudioStatus(room, localIsSpeaking, !isAudioEnabled);
+  const youtubeSession = useSharedYouTubeSession(room, participantId, isHost);
 
   // Set host status from URL params or localStorage on mount
   useEffect(() => {
@@ -81,10 +80,10 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   }, [searchParams, setIsHost, roomId]);
 
   // Handle leaving the room properly
-  const handleLeave = () => {
+  const handleLeave = useCallback(() => {
     leaveRoom();
     onLeave();
-  };
+  }, [leaveRoom, onLeave]);
 
   // Ensure we're connected to the room
   useEffect(() => {
@@ -122,7 +121,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
       try {
         const stream = await startMedia(prefAudio, prefVideo);
         console.log('[RoomView] Media initialized:', !!stream, 'audio:', prefAudio, 'video:', prefVideo);
-      } catch (err) {
+      } catch {
         console.log('[RoomView] Media not available, continuing without camera/mic');
       }
     };
@@ -133,14 +132,17 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
   useEffect(() => {
     if (!room) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type HostCommand = {
+      type: 'mute' | 'unmute' | 'stop-video' | 'kick';
+      targetPeerId?: string;
+    };
+
     const [, receiveHostCommand] = room.makeAction('host-command') as unknown as [
-      (data: any, peerId?: string) => void,
-      (callback: (data: any, peerId: string) => void) => void
+      (data: HostCommand, peerId?: string) => void,
+      (callback: (data: HostCommand, peerId: string) => void) => void
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    receiveHostCommand((data: any, peerId: string) => {
+    receiveHostCommand((data: HostCommand, peerId: string) => {
       console.log('[RoomView] Received host command from:', peerId, 'type:', data.type);
 
       switch (data.type) {
@@ -164,8 +166,7 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
           break;
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room, setAudioEnabled, toggleVideo]);
+  }, [handleLeave, room, setAudioEnabled, toggleVideo, isVideoEnabled]);
 
   const handleScreenShare = async () => {
     if (isScreenSharing) {
@@ -232,6 +233,15 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
     setActivePanel(prev => prev === 'host' ? null : 'host');
   };
 
+  const toggleYouTubeWorkspace = () => {
+    if (youtubeSession.sessionState.isOpen) {
+      void youtubeSession.closeWorkspace();
+      return;
+    }
+
+    void youtubeSession.openWorkspace();
+  };
+
   return (
     <div className="h-screen w-screen bg-white flex flex-col-reverse md:flex-row overflow-hidden relative">
       {/* Connection Overlay */}
@@ -283,7 +293,6 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
       <ControlBar
         isAudioEnabled={isAudioEnabled}
         isVideoEnabled={isVideoEnabled}
-        isHost={isHost}
         localIsSpeaking={localIsSpeaking}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
@@ -291,48 +300,67 @@ export function RoomView({ roomId, onLeave }: RoomViewProps) {
         onToggleChat={toggleChat}
         onScreenShare={handleScreenShare}
         isScreenSharing={isScreenSharing}
+        isYouTubeOpen={youtubeSession.sessionState.isOpen}
+        onToggleYouTube={toggleYouTubeWorkspace}
         onHostControl={toggleHostPanel}
       />
 
       {/* 2. Main Content Area */}
       <div className="flex-1 flex flex-col relative overflow-hidden">
         {/* Header / Info Bar */}
-        <div className="absolute top-0 left-0 right-0 z-10 p-4 pointer-events-none">
-          <div className="inline-flex items-center gap-4 bg-white border-2 border-black px-4 py-2 pointer-events-auto shadow-sm">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-black">
-                {roomId.slice(0, 8).toUpperCase()}
-              </p>
-              <div className="flex items-center gap-2">
-                {isConnected ? (
-                  <>
-                    <p className="text-xs font-mono text-green-600">
-                      {peers.size} PEER{peers.size !== 1 ? 'S' : ''} CONNECTED
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <Loader2 size={12} className="animate-spin text-yellow-600" />
-                    <p className="text-xs font-mono text-yellow-600">
-                      CONNECTING...
-                    </p>
-                  </>
-                )}
+        {!youtubeSession.sessionState.isOpen && (
+          <div className="absolute top-0 left-0 right-0 z-10 p-4 pointer-events-none">
+            <div className="inline-flex items-center gap-4 bg-white border-2 border-black px-4 py-2 pointer-events-auto shadow-sm">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-black">
+                  {roomId.slice(0, 8).toUpperCase()}
+                </p>
+                <div className="flex items-center gap-2">
+                  {isConnected ? (
+                    <>
+                      <p className="text-xs font-mono text-green-600">
+                        {peers.size} PEER{peers.size !== 1 ? 'S' : ''} CONNECTED
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Loader2 size={12} className="animate-spin text-yellow-600" />
+                      <p className="text-xs font-mono text-yellow-600">
+                        CONNECTING...
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Video Grid */}
         <div className="flex-1 overflow-hidden bg-gray-50 relative">
-          <VideoGrid
-            localStream={localStream}
-            peers={peers}
-            isVideoEnabled={isVideoEnabled}
-            isAudioEnabled={isAudioEnabled}
-            localIsSpeaking={localIsSpeaking}
-            peerAudioStatuses={peerAudioStatuses}
-          />
+          {youtubeSession.sessionState.isOpen ? (
+            <YouTubeWorkspace
+              localStream={localStream}
+              peers={peers}
+              isVideoEnabled={isVideoEnabled}
+              isAudioEnabled={isAudioEnabled}
+              localIsSpeaking={localIsSpeaking}
+              peerAudioStatuses={peerAudioStatuses}
+              participantId={participantId}
+              isHost={isHost}
+              authorityParticipantId={authorityParticipantId}
+              youtubeSession={youtubeSession}
+            />
+          ) : (
+            <VideoGrid
+              localStream={localStream}
+              peers={peers}
+              isVideoEnabled={isVideoEnabled}
+              isAudioEnabled={isAudioEnabled}
+              localIsSpeaking={localIsSpeaking}
+              peerAudioStatuses={peerAudioStatuses}
+            />
+          )}
         </div>
       </div>
 

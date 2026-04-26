@@ -8,8 +8,8 @@ export interface RoomState {
   hostId: string | null;
 }
 
-export function useRoomState(room: Room | null, isHost: boolean) {
-  const [roomState, setRoomState] = useState<RoomState>({
+export function useRoomState(room: Room | null, isHost: boolean, participantId: string) {
+  const [remoteRoomState, setRemoteRoomState] = useState<RoomState>({
     isSessionStarted: false,
     hostId: null
   });
@@ -17,37 +17,36 @@ export function useRoomState(room: Room | null, isHost: boolean) {
   useEffect(() => {
     if (!room) return;
 
-    const [sendState, receiveState] = room.makeAction('roomState');
+    const [, receiveState] = room.makeAction('roomState');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     receiveState((state: any) => {
       if (state && typeof state.isSessionStarted !== 'undefined') {
-        setRoomState(state);
+        setRemoteRoomState(state);
       }
     });
-
-    if (isHost) {
-      const initialState: RoomState = {
-        isSessionStarted: false,
-        hostId: 'me'
-      };
-      setRoomState(initialState);
-    }
 
     return () => {
       // Cleanup
     };
-  }, [room, isHost]);
+  }, [room]);
+
+  const roomState: RoomState = isHost
+    ? {
+        isSessionStarted: remoteRoomState.isSessionStarted,
+        hostId: participantId,
+      }
+    : remoteRoomState;
 
   const startSession = () => {
     if (!room || !isHost) return;
 
     const newState: RoomState = {
       isSessionStarted: true,
-      hostId: 'me'
+      hostId: participantId
     };
 
-    setRoomState(newState);
+    setRemoteRoomState(newState);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [sendState] = room.makeAction('roomState') as unknown as [(data: any) => void];

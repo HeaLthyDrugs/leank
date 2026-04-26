@@ -1,13 +1,12 @@
 'use client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useRoomContext } from '@/contexts/RoomContext';
 import { useRoomState } from '@/hooks/useRoomState';
-import { Copy, Check, Users, ArrowRight, Clock, Loader2, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Copy, Check, Users, ArrowRight, Clock, Loader2, Wifi, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Logo } from '@/components/ui/Logo';
 import { MediaPreview } from '@/components/p2p/MediaPreview';
 
 
@@ -19,13 +18,26 @@ export default function LobbyPage() {
   const roomId = params.roomId as string;
   const [copiedType, setCopiedType] = useState<'link' | 'id' | null>(null);
   const [toast, setToast] = useState<{ id: number, message: string } | null>(null);
-  const [roomLink, setRoomLink] = useState('');
-  const [isHost, setIsHost] = useState(false);
-  const [peerCount, setPeerCount] = useState(0);
+  const roomLink = useMemo(
+    () => (typeof window !== 'undefined' ? `${window.location.origin}/lobby/${roomId}` : ''),
+    [roomId],
+  );
+  const isHost = useMemo(() => {
+    const hostParam = searchParams.get('host');
+    if (hostParam === 'true') {
+      return true;
+    }
+
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(`room_${roomId}_host`) === 'true';
+    }
+
+    return false;
+  }, [roomId, searchParams]);
 
   // Use shared room context instead of direct useRoom
-  const { room, peers, isConnected, isReconnecting, connectionAttempts, joinRoom, forceReconnect } = useRoomContext();
-  const { roomState, startSession } = useRoomState(room, isHost);
+  const { room, peers, participantId, isConnected, connectionAttempts, joinRoom, forceReconnect } = useRoomContext();
+  const { roomState, startSession } = useRoomState(room, isHost, participantId);
 
   // Join the room when component mounts
   useEffect(() => {
@@ -36,26 +48,15 @@ export default function LobbyPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setRoomLink(`${window.location.origin}/lobby/${roomId}`);
-
-      const isHostParam = searchParams.get('host');
-      const hostFlag = isHostParam === 'true';
-      setIsHost(hostFlag);
-
-      localStorage.setItem(`room_${roomId}_host`, hostFlag ? 'true' : 'false');
+      localStorage.setItem(`room_${roomId}_host`, isHost ? 'true' : 'false');
     }
-  }, [roomId, searchParams]);
+  }, [isHost, roomId]);
 
   useEffect(() => {
     if (roomState.isSessionStarted && !isHost) {
       router.push(`/room/${roomId}`);
     }
   }, [roomState.isSessionStarted, isHost, roomId, router]);
-
-  useEffect(() => {
-    const newCount = peers.size;
-    setPeerCount(newCount);
-  }, [peers.size, peerCount]);
 
   const showToast = (message: string) => {
     const id = Date.now();

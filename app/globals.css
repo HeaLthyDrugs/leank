@@ -161,3 +161,25 @@ body {
     @apply border-border outline-ring/50;
   }
 }
+
+/* Keep YouTube shared stage responsive and clipped inside the workspace frame */
+.yt-stage-frame {
+  width: 100%;
+  max-width: 100%;
+}
+
+.yt-stage-spacer {
+  display: block;
+  width: 100%;
+  padding-top: 56.25%;
+}
+
+.yt-player-host,
+.yt-player-host iframe,
+.yt-player-host > div,
+.yt-player-host > div > iframe {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  display: block;
+}

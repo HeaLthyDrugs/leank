@@ -1,7 +1,3 @@
-import { Logo } from '@/components/ui/Logo';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-
 export default function PrivacyPolicy() {
     return (
         <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white pb-20">
@@ -36,10 +32,20 @@ export default function PrivacyPolicy() {
                         <p>
                             To establish P2P connections successfully across different networks, we utilize standard STUN servers. These servers only facilitate the initial connection handshake by discovering public IP addresses and do not relay your media or messages.
                         </p>
+                        <p className="mt-3">
+                            If you open the shared YouTube workspace, your browser may also make direct requests to Google/YouTube services for embedded playback and YouTube search results. Those requests are governed by Google&apos;s and YouTube&apos;s own privacy terms, and they are not proxied or stored by Leank.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-black uppercase tracking-tight text-black mb-4">5. Local Shared-Workspace State</h2>
+                        <p>
+                            Shared-room coordination data such as participant identity, controller state, and synchronized playback position may be cached temporarily in your browser storage so the room can recover after a refresh. This data stays in your browser and is used only to keep the live room session consistent across peers.
+                        </p>
                     </section>
 
                     <div className="mt-12 pt-8 border-t-2 border-black/10 text-sm">
-                        <p className="uppercase tracking-widest font-bold">Last Updated: February 2025</p>
+                        <p className="uppercase tracking-widest font-bold">Last Updated: April 26, 2026</p>
                     </div>
                 </div>
             </div>

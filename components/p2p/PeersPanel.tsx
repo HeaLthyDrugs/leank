@@ -94,7 +94,9 @@ export function PeersPanel({
                         </div>
                     ) : (
                         peerList.map(([peerId]) => {
-                            const displayName = `Peer ${peerId.slice(0, 6).toUpperCase()}`;
+                            const peer = peers.get(peerId);
+                            const stableId = peer?.participantId ?? peerId;
+                            const displayName = `${peer?.isHost ? 'Host' : 'Peer'} ${stableId.slice(0, 6).toUpperCase()}`;
                             return (
                                 <div
                                     key={peerId}
@@ -102,7 +104,7 @@ export function PeersPanel({
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-gray-100 text-black flex items-center justify-center font-bold text-xs border-2 border-black">
-                                            {peerId.slice(0, 2).toUpperCase()}
+                                            {stableId.slice(0, 2).toUpperCase()}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-bold truncate">{displayName}</p>

@@ -1,7 +1,3 @@
-import { Logo } from '@/components/ui/Logo';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-
 export default function TermsOfService() {
     return (
         <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white pb-20">
@@ -20,7 +16,7 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-2xl font-black uppercase tracking-tight text-black mb-4">2. Description of Service</h2>
                         <p>
-                            Leank provides a web-based, peer-to-peer (P2P) communication platform offering video calls, voice chat, and file sharing. The service is provided "AS IS" and your use of the service is entirely at your own risk.
+                            Leank provides a web-based, peer-to-peer (P2P) communication platform offering video calls, voice chat, file sharing, and an optional shared YouTube workspace. The service is provided &quot;AS IS&quot; and your use of the service is entirely at your own risk.
                         </p>
                     </section>
 
@@ -38,8 +34,15 @@ export default function TermsOfService() {
                         </p>
                     </section>
 
+                    <section>
+                        <h2 className="text-2xl font-black uppercase tracking-tight text-black mb-4">5. Third-Party Media Services</h2>
+                        <p>
+                            The shared YouTube workspace relies on YouTube&apos;s embedded player and YouTube Data API services. Availability of search results, playback, embedding, autoplay behavior, and regional restrictions is controlled by YouTube/Google, not by Leank. By using that workspace, you agree to comply with any applicable YouTube and Google terms.
+                        </p>
+                    </section>
+
                     <div className="mt-12 pt-8 border-t-2 border-black/10 text-sm">
-                        <p className="uppercase tracking-widest font-bold">Last Updated: February 2025</p>
+                        <p className="uppercase tracking-widest font-bold">Last Updated: April 26, 2026</p>
                     </div>
                 </div>
             </div>
