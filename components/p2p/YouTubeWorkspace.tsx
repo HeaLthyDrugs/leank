@@ -111,6 +111,7 @@ interface YouTubeWorkspaceProps {
   peerAudioStatuses: Map<string, PeerAudioStatus>;
   participantId: string;
   isHost: boolean;
+  authorityParticipantId: string | null;
   youtubeSession: SharedYouTubeSessionApi;
 }
 
@@ -123,6 +124,7 @@ export function YouTubeWorkspace({
   peerAudioStatuses: _peerAudioStatuses,
   participantId: _participantId,
   isHost: _isHost,
+  authorityParticipantId: _authorityParticipantId,
   youtubeSession,
 }: YouTubeWorkspaceProps) {
   const {
