@@ -9,10 +9,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://leank.vercel.app"),
-  title: "Leank — Instant Chat & File Sharing",
+  metadataBase: new URL("https://leank.online"),
+  title: "Leank - Instant Secure Chat and File Sharing Rooms",
   description:
-    "Connect instantly with friends or colleagues. Enjoy fast, secure chat and file sharing directly in your browser without any signups or downloads.",
+    "Create secure real-time rooms for chat, video calls, YouTube watch sessions, and fast file sharing in your browser with no signups or downloads required.",
   keywords: [
     "instant chat",
     "share files online",
@@ -26,16 +26,29 @@ export const metadata: Metadata = {
     "anonymous chat"
   ],
   openGraph: {
-    title: "Leank — Instant Chat & File Sharing",
-    description: "Start a free chat room and share files with just one click. No login required, entirely in your browser.",
-    url: "https://leank.vercel.app",
+    title: "Leank - Instant Secure Chat and File Sharing Rooms",
+    description:
+      "Create secure real-time rooms for chat, video calls, YouTube watch sessions, and fast file sharing in your browser with no signups or downloads required.",
+    url: "https://leank.online",
     siteName: "Leank",
     type: "website",
+    images: [
+      {
+        url: "https://assets.mnsh.online/work/leank-p2p-communication/home.png",
+        width: 1200,
+        height: 630,
+        alt: "Leank home interface for secure chat, calls, and file sharing",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Leank — Instant Secure Chat",
-    description: "Chat and share files with anyone instantly. No login, no downloads.",
+    title: "Leank - Instant Secure Chat and File Sharing Rooms",
+    description:
+      "Create secure real-time rooms for chat, video calls, YouTube watch sessions, and fast file sharing in your browser with no signups or downloads required.",
+    images: [
+      "https://assets.mnsh.online/work/leank-p2p-communication/home.png",
+    ],
   },
   manifest: "/favicons/site.webmanifest",
   icons: {
@@ -75,4 +88,3 @@ export default function RootLayout({
     </html>
   );
 }
-
