@@ -3,29 +3,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
   Clapperboard,
   Link2,
   Loader2,
-  Lock,
-  Maximize2,
-  Minimize2,
-  Pause,
   Play,
   Search,
-  Shield,
-  Unlock,
-  Volume2,
-  VolumeX,
 } from 'lucide-react';
 import type { SharedYouTubeSessionApi } from '@/hooks/useSharedYouTubeSession';
 import type { Peer } from '@/contexts/RoomContext';
 import type { PeerAudioStatus } from '@/hooks/useAudioStatus';
-import {
-  formatTimecode,
-  getLeaseRemainingMs,
-  YOUTUBE_ALLOWED_PLAYBACK_RATES,
-  YOUTUBE_DRIFT_THRESHOLD_SEC,
-} from '@/lib/youtube';
+import { YOUTUBE_DRIFT_THRESHOLD_SEC } from '@/lib/youtube';
 
 declare global {
   interface Window {
@@ -113,31 +102,6 @@ function loadYouTubeIframeApi() {
   return youtubeIframeApiPromise;
 }
 
-function formatParticipantLabel(
-  targetParticipantId: string | null,
-  participantId: string,
-  isHost: boolean,
-  peers: Map<string, Peer>,
-) {
-  if (!targetParticipantId) {
-    return 'No controller';
-  }
-
-  if (targetParticipantId === participantId) {
-    return isHost ? 'You (Host)' : 'You';
-  }
-
-  const matchingPeer = Array.from(peers.values()).find(
-    (peer) => peer.participantId === targetParticipantId,
-  );
-
-  if (matchingPeer?.isHost) {
-    return `Host ${targetParticipantId.slice(0, 6).toUpperCase()}`;
-  }
-
-  return `Peer ${targetParticipantId.slice(0, 6).toUpperCase()}`;
-}
-
 interface YouTubeWorkspaceProps {
   localStream: MediaStream | null;
   peers: Map<string, Peer>;
@@ -147,20 +111,18 @@ interface YouTubeWorkspaceProps {
   peerAudioStatuses: Map<string, PeerAudioStatus>;
   participantId: string;
   isHost: boolean;
-  authorityParticipantId: string | null;
   youtubeSession: SharedYouTubeSessionApi;
 }
 
 export function YouTubeWorkspace({
-  localStream,
-  peers,
-  isVideoEnabled,
-  isAudioEnabled,
-  localIsSpeaking,
-  peerAudioStatuses,
-  participantId,
-  isHost,
-  authorityParticipantId,
+  localStream: _localStream,
+  peers: _peers,
+  isVideoEnabled: _isVideoEnabled,
+  isAudioEnabled: _isAudioEnabled,
+  localIsSpeaking: _localIsSpeaking,
+  peerAudioStatuses: _peerAudioStatuses,
+  participantId: _participantId,
+  isHost: _isHost,
   youtubeSession,
 }: YouTubeWorkspaceProps) {
   const {
@@ -170,12 +132,8 @@ export function YouTubeWorkspace({
     searchStatus,
     searchError,
     takeControl,
-    releaseControl,
-    closeWorkspace,
     play,
     pause,
-    seek,
-    setPlaybackRate,
     loadVideo,
     loadVideoByInput,
     updateQuery,
@@ -189,48 +147,37 @@ export function YouTubeWorkspace({
   const suppressPlayerEventsUntilRef = useRef(0);
   const autoplayCheckTimeoutRef = useRef<number | null>(null);
   const [playerReady, setPlayerReady] = useState(false);
-  const [durationSec, setDurationSec] = useState(0);
-  const [localCurrentTimeSec, setLocalCurrentTimeSec] = useState(0);
-  const [scrubTimeSec, setScrubTimeSec] = useState(0);
-  const [isScrubbing, setIsScrubbing] = useState(false);
   const [directInput, setDirectInput] = useState('');
+  const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(true);
+  const [activeInputTab, setActiveInputTab] = useState<'search' | 'direct'>('search');
   const [directInputError, setDirectInputError] = useState<string | null>(null);
   const [playerErrorState, setPlayerErrorState] = useState<{ videoId: string | null; message: string | null }>({
     videoId: null,
     message: null,
   });
   const [autoplayBlockedVideoId, setAutoplayBlockedVideoId] = useState<string | null>(null);
-  const [localVolume, setLocalVolume] = useState(100);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [clock, setClock] = useState(0);
 
   const sharedVideoIdRef = useRef<string | null>(null);
   const playRef = useRef(play);
   const pauseRef = useRef(pause);
   const markPlayerStatusRef = useRef(markPlayerStatus);
-  const liveLeaseRemainingMs = getLeaseRemainingMs(
-    sessionState.controlLeaseExpiresAt,
-    clock || sessionState.updatedAt,
-  );
-  const controllerLabel = formatParticipantLabel(sessionState.controllerId, participantId, isHost, peers);
-  const authorityLabel = formatParticipantLabel(authorityParticipantId, participantId, isHost, peers);
   const sharedVideoId = sessionState.player.videoId;
   const playerError =
     playerErrorState.videoId === sessionState.player.videoId ? playerErrorState.message : null;
   const autoplayBlocked = autoplayBlockedVideoId === sessionState.player.videoId;
-  const displayedCurrentTime = isScrubbing ? scrubTimeSec : localCurrentTimeSec;
   const isPlaybackControlledByOther =
     hasActiveController &&
     sessionState.controllerId !== null &&
-    sessionState.controllerId !== participantId;
+    sessionState.controllerId !== _participantId;
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setClock(Date.now());
-    }, 500);
+    if (typeof window === 'undefined') {
+      return;
+    }
 
-    return () => window.clearInterval(intervalId);
+    if (window.innerWidth < 1280) {
+      setIsSearchPanelOpen(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -248,15 +195,6 @@ export function YouTubeWorkspace({
   useEffect(() => {
     markPlayerStatusRef.current = markPlayerStatus;
   }, [markPlayerStatus]);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === playerShellRef.current);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -280,7 +218,7 @@ export function YouTubeWorkspace({
           height: '100%',
           playerVars: {
             autoplay: 0,
-            controls: 0,
+            controls: 1,
             playsinline: 1,
             rel: 0,
             modestbranding: 1,
@@ -290,15 +228,10 @@ export function YouTubeWorkspace({
             onReady: (event) => {
               setPlayerReady(true);
               event.target.setVolume(100);
-              setIsMuted(event.target.isMuted());
-              setDurationSec(event.target.getDuration() || 0);
             },
             onStateChange: (event) => {
               const player = event.target;
               const now = Date.now();
-              setLocalCurrentTimeSec(player.getCurrentTime() || 0);
-              setDurationSec(player.getDuration() || 0);
-              setIsMuted(player.isMuted());
 
               if (now < suppressPlayerEventsUntilRef.current) {
                 return;
@@ -360,14 +293,6 @@ export function YouTubeWorkspace({
       setPlayerReady(false);
     };
   }, []);
-
-  useEffect(() => {
-    if (!playerReady || !playerRef.current) {
-      return;
-    }
-
-    playerRef.current.setVolume(localVolume);
-  }, [localVolume, playerReady]);
 
   useEffect(() => {
     if (!playerReady || !playerRef.current) {
@@ -438,90 +363,6 @@ export function YouTubeWorkspace({
 
   }, [playerReady, sessionState.player]);
 
-  useEffect(() => {
-    if (!playerReady || !playerRef.current) {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      if (!playerRef.current) {
-        return;
-      }
-
-      setLocalCurrentTimeSec(playerRef.current.getCurrentTime() || 0);
-      setDurationSec(playerRef.current.getDuration() || 0);
-      setIsMuted(playerRef.current.isMuted());
-    }, 400);
-
-    return () => window.clearInterval(intervalId);
-  }, [playerReady]);
-
-  const handleToggleFullscreen = async () => {
-    if (!playerShellRef.current) {
-      return;
-    }
-
-    if (document.fullscreenElement === playerShellRef.current) {
-      await document.exitFullscreen();
-      return;
-    }
-
-    await playerShellRef.current.requestFullscreen();
-  };
-
-  const handleToggleMute = () => {
-    if (!playerRef.current) {
-      return;
-    }
-
-    if (playerRef.current.isMuted()) {
-      playerRef.current.unMute();
-      setIsMuted(false);
-      return;
-    }
-
-    playerRef.current.mute();
-    setIsMuted(true);
-  };
-
-  const handleVolumeChange = (volume: number) => {
-    setLocalVolume(volume);
-    if (!playerRef.current) {
-      return;
-    }
-
-    playerRef.current.setVolume(volume);
-    if (volume === 0) {
-      playerRef.current.mute();
-      setIsMuted(true);
-      return;
-    }
-
-    playerRef.current.unMute();
-    setIsMuted(false);
-  };
-
-  const handlePlayPause = () => {
-    if (!playerRef.current) {
-      return;
-    }
-
-    const currentTime = playerRef.current.getCurrentTime() || sessionState.player.currentTimeSec || 0;
-
-    if (sessionState.player.status === 'playing' || sessionState.player.status === 'buffering') {
-      void pause(currentTime);
-      return;
-    }
-
-    void play(currentTime);
-  };
-
-  const handleSeekCommit = (nextTimeSec: number) => {
-    setIsScrubbing(false);
-    setScrubTimeSec(nextTimeSec);
-    void seek(nextTimeSec);
-  };
-
   const handleDirectLoad = async () => {
     const result = await loadVideoByInput(directInput);
     if (!result.ok) {
@@ -554,63 +395,7 @@ export function YouTubeWorkspace({
   }, [searchError, searchStatus, sessionState.query, sessionState.results.length]);
 
   return (
-    <div className="flex h-full flex-col bg-[#f3f0e8]">
-      <div className="border-b-2 border-black bg-[#fff7df] px-4 py-3">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 border-2 border-black bg-black px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-white">
-                <Clapperboard size={14} />
-                Shared YouTube Workspace
-              </span>
-              <span className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 text-[11px] font-mono uppercase">
-                Controller: {controllerLabel}
-              </span>
-              <span className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 text-[11px] font-mono uppercase">
-                <Shield size={14} />
-                Authority: {authorityLabel}
-              </span>
-              {sessionState.controlLeaseExpiresAt && liveLeaseRemainingMs > 0 && (
-                <span className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 text-[11px] font-mono uppercase">
-                  Lease: {Math.ceil(liveLeaseRemainingMs / 1000)}s
-                </span>
-              )}
-            </div>
-
-            <p className="max-w-3xl text-sm font-medium text-black/75">
-              Search is quota-managed by the active controller. Playback, seeks, and rate changes stay synced;
-              volume, mute, and fullscreen remain local to each participant.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {!isController ? (
-              <button
-                onClick={() => void takeControl()}
-                className="inline-flex items-center gap-2 border-2 border-black bg-black px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black"
-              >
-                <Lock size={14} />
-                {isHost ? 'Take Control (Host)' : 'Take Control'}
-              </button>
-            ) : (
-              <button
-                onClick={releaseControl}
-                className="inline-flex items-center gap-2 border-2 border-black bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-black transition-colors hover:bg-black hover:text-white"
-              >
-                <Unlock size={14} />
-                Release Control
-              </button>
-            )}
-
-            <button
-              onClick={() => void closeWorkspace()}
-              className="inline-flex items-center gap-2 border-2 border-black bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-black transition-colors hover:bg-black hover:text-white"
-            >
-              Close Workspace
-            </button>
-          </div>
-        </div>
-      </div>
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-[#f3f0e8]">
 
       {(playerError || sessionState.player.status === 'error' || autoplayBlocked) && (
         <div className="border-b-2 border-black">
@@ -643,14 +428,10 @@ export function YouTubeWorkspace({
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col xl:flex-row">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col border-b-2 border-black bg-[#f7f6f1] xl:border-b-0 xl:border-r-2">
-          <div ref={playerShellRef} className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden xl:flex-row">
+        <div className="flex min-h-[52vh] min-w-0 flex-1 flex-col border-b-2 border-black bg-[#f7f6f1] xl:min-h-0 xl:border-b-0 xl:border-r-2">
+          <div ref={playerShellRef} className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto p-3 sm:p-4">
             <div className="min-w-0 overflow-hidden border-2 border-black bg-white shadow-[6px_6px_0_0_#000]">
-              <div className="border-b-2 border-black bg-[#e5f0ff] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em]">
-                Shared Stage
-              </div>
-
               <div className="yt-stage-frame relative w-full overflow-hidden bg-black">
                 <div className="yt-stage-spacer" aria-hidden="true" />
                 {!sharedVideoId && (
@@ -666,167 +447,116 @@ export function YouTubeWorkspace({
                 )}
                 <div ref={playerHostRef} className="yt-player-host absolute inset-0 h-full w-full" />
               </div>
-
-              <div className="space-y-4 border-t-2 border-black bg-white p-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      onClick={handlePlayPause}
-                      className="inline-flex h-11 items-center justify-center gap-2 border-2 border-black bg-black px-4 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black"
-                    >
-                      {sessionState.player.status === 'playing' || sessionState.player.status === 'buffering' ? (
-                        <>
-                          <Pause size={16} />
-                          Pause
-                        </>
-                      ) : (
-                        <>
-                          <Play size={16} />
-                          Play
-                        </>
-                      )}
-                    </button>
-
-                    <label className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-2 text-xs font-bold uppercase tracking-wide">
-                      Rate
-                      <select
-                        value={sessionState.player.playbackRate}
-                        onChange={(event) => void setPlaybackRate(Number(event.target.value) as (typeof YOUTUBE_ALLOWED_PLAYBACK_RATES)[number])}
-                        className="bg-transparent text-xs font-mono outline-none"
-                      >
-                        {YOUTUBE_ALLOWED_PLAYBACK_RATES.map((rate) => (
-                          <option key={rate} value={rate}>
-                            {rate}x
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      onClick={handleToggleMute}
-                      className="inline-flex h-11 w-11 items-center justify-center border-2 border-black bg-white text-black transition-colors hover:bg-black hover:text-white"
-                    >
-                      {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                    </button>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={localVolume}
-                      onChange={(event) => handleVolumeChange(Number(event.target.value))}
-                      className="h-11 w-28 accent-black"
-                    />
-                    <button
-                      onClick={() => void handleToggleFullscreen()}
-                      className="inline-flex h-11 w-11 items-center justify-center border-2 border-black bg-white text-black transition-colors hover:bg-black hover:text-white"
-                    >
-                      {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <input
-                    type="range"
-                    min={0}
-                    max={Math.max(durationSec, sessionState.player.currentTimeSec, 1)}
-                    step={0.25}
-                    value={displayedCurrentTime}
-                    onChange={(event) => {
-                      const nextValue = Number(event.target.value);
-                      setIsScrubbing(true);
-                      setScrubTimeSec(nextValue);
-                    }}
-                    onMouseUp={() => handleSeekCommit(scrubTimeSec)}
-                    onTouchEnd={() => handleSeekCommit(scrubTimeSec)}
-                    className="w-full accent-black"
-                  />
-                  <div className="flex items-center justify-between text-[11px] font-mono uppercase text-black/70">
-                    <span>{formatTimecode(displayedCurrentTime)}</span>
-                    <span className="font-bold">{sessionState.player.status}</span>
-                    <span>{formatTimecode(durationSec)}</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
-          <ParticipantStrip
-            localStream={localStream}
-            peers={peers}
-            isVideoEnabled={isVideoEnabled}
-            isAudioEnabled={isAudioEnabled}
-            localIsSpeaking={localIsSpeaking}
-            peerAudioStatuses={peerAudioStatuses}
-          />
         </div>
 
-        <aside className="flex w-full flex-col bg-[#f8f4eb] xl:w-[360px]">
-          <div className="border-b-2 border-black bg-white p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <Search size={16} />
-              <h3 className="text-sm font-black uppercase tracking-[0.2em]">Shared Search</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="border-2 border-black bg-white">
-                <input
-                  value={sessionState.query}
-                  readOnly={isPlaybackControlledByOther}
-                  onClick={() => {
-                    if (!isController) {
-                      void takeControl();
-                    }
-                  }}
-                  onFocus={() => {
-                    if (!isController) {
-                      void takeControl();
-                    }
-                  }}
-                  onChange={(event) => {
-                    setDirectInputError(null);
-                    void updateQuery(event.target.value);
-                  }}
-                  placeholder={isPlaybackControlledByOther ? 'Take control to edit the shared query.' : 'Search YouTube videos...'}
-                  className="w-full bg-white px-4 py-3 text-sm font-medium outline-none placeholder:text-black/40"
-                />
-              </div>
+        <div className="hidden items-center justify-end border-b-2 border-black bg-[#f3f0e8] px-3 py-2 xl:flex xl:border-b-0 xl:border-l-2 xl:border-r-2 xl:px-2">
+          <button
+            onClick={() => setIsSearchPanelOpen((prev) => !prev)}
+            className="inline-flex h-9 w-9 items-center justify-center border-2 border-black bg-black text-white transition-colors hover:bg-white hover:text-black"
+            aria-expanded={isSearchPanelOpen}
+            aria-label={isSearchPanelOpen ? 'Close search panel' : 'Open search panel'}
+            title={isSearchPanelOpen ? 'Hide search panel' : 'Show search panel'}
+          >
+            {isSearchPanelOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+        </div>
 
-              <div className="rounded-none border-2 border-black bg-[#fff8e6] px-3 py-2 text-[11px] font-mono uppercase text-black/70">
-                Only the active controller calls the YouTube API. Everyone else receives the same normalized results.
-              </div>
-            </div>
-          </div>
+        {isSearchPanelOpen && (
+          <button
+            className="fixed inset-0 z-30 bg-black/30 xl:hidden"
+            onClick={() => setIsSearchPanelOpen(false)}
+            aria-label="Close search drawer backdrop"
+          />
+        )}
 
-          <div className="border-b-2 border-black bg-white p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <Link2 size={16} />
-              <h3 className="text-sm font-black uppercase tracking-[0.2em]">Direct Load</h3>
-            </div>
-            <div className="space-y-3">
-              <textarea
-                value={directInput}
-                onChange={(event) => setDirectInput(event.target.value)}
-                placeholder="Paste a youtube.com/watch link, youtu.be link, or 11-character video ID."
-                className="min-h-[88px] w-full border-2 border-black bg-white px-4 py-3 text-sm font-medium outline-none placeholder:text-black/40"
-              />
-              {directInputError && (
-                <div className="border-2 border-red-500 bg-[#ffe6df] px-3 py-2 text-xs font-medium text-red-900">
-                  {directInputError}
-                </div>
-              )}
+        <aside
+          className={`fixed inset-x-0 bottom-0 z-40 flex min-h-0 w-full flex-col overflow-hidden border-2 border-black bg-[#f8f4eb] transition-all duration-300 ease-out xl:static xl:z-auto xl:border-0 ${
+            isSearchPanelOpen
+              ? 'max-h-[78vh] translate-y-0 xl:h-full xl:max-h-none xl:w-[360px]'
+              : 'max-h-[78vh] translate-y-full xl:h-full xl:max-h-none xl:w-0 xl:translate-y-0'
+          }`}
+        >
+          <div className="border-b-2 border-black bg-white p-3">
+            <div className="mb-3 inline-flex w-full border-2 border-black">
               <button
-                onClick={() => void handleDirectLoad()}
-                className="inline-flex w-full items-center justify-center gap-2 border-2 border-black bg-black px-4 py-3 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black"
+                onClick={() => setActiveInputTab('search')}
+                className={`w-1/2 px-3 py-2 text-[11px] font-bold uppercase tracking-wide ${activeInputTab === 'search' ? 'bg-black text-white' : 'bg-white text-black'}`}
               >
-                <Link2 size={14} />
-                Load Shared Video
+                Shared Search
+              </button>
+              <button
+                onClick={() => setActiveInputTab('direct')}
+                className={`w-1/2 border-l-2 border-black px-3 py-2 text-[11px] font-bold uppercase tracking-wide ${activeInputTab === 'direct' ? 'bg-black text-white' : 'bg-white text-black'}`}
+              >
+                Direct Load
               </button>
             </div>
+
+            {activeInputTab === 'search' ? (
+              <div className="space-y-2">
+                <div className="mb-2 flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em]">
+                  <Search size={16} />
+                  Search
+                </div>
+                <div className="border-2 border-black bg-white">
+                  <input
+                    value={sessionState.query}
+                    readOnly={isPlaybackControlledByOther}
+                    onClick={() => {
+                      if (!isController) {
+                        void takeControl();
+                      }
+                    }}
+                    onFocus={() => {
+                      if (!isController) {
+                        void takeControl();
+                      }
+                    }}
+                    onChange={(event) => {
+                      setDirectInputError(null);
+                      void updateQuery(event.target.value);
+                    }}
+                    placeholder={isPlaybackControlledByOther ? 'Take control to edit the shared query.' : 'Search YouTube videos...'}
+                    className="w-full bg-white px-4 py-3 text-sm font-medium outline-none placeholder:text-black/40"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="mb-2 flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em]">
+                  <Link2 size={16} />
+                  Direct Load
+                </div>
+                <textarea
+                  value={directInput}
+                  onChange={(event) => setDirectInput(event.target.value)}
+                  placeholder="Paste a youtube.com/watch link, youtu.be link, or 11-character video ID."
+                  className="min-h-[82px] w-full border-2 border-black bg-white px-4 py-3 text-sm font-medium outline-none placeholder:text-black/40"
+                />
+                {directInputError && (
+                  <div className="border-2 border-red-500 bg-[#ffe6df] px-3 py-2 text-xs font-medium text-red-900">
+                    {directInputError}
+                  </div>
+                )}
+                <button
+                  onClick={() => void handleDirectLoad()}
+                  className="inline-flex w-full items-center justify-center gap-2 border-2 border-black bg-black px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black"
+                >
+                  <Link2 size={14} />
+                  Load Shared Video
+                </button>
+              </div>
+            )}
+
+            <div className="mt-2 rounded-none border-2 border-black bg-[#fff8e6] px-3 py-2 text-[11px] font-mono uppercase text-black/70">
+              Shared results sync for everyone. Only active controller calls the YouTube API.
+            </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clapperboard size={16} />
@@ -887,7 +617,7 @@ export function YouTubeWorkspace({
                         {new Date(result.publishedAt).toLocaleDateString()}
                       </span>
                       <span className="inline-flex items-center gap-2 border border-black px-2 py-1 text-[10px] font-bold uppercase tracking-wide">
-                        {isController ? 'Load' : 'Take + Load'}
+                        Load
                       </span>
                     </div>
                   </div>
@@ -896,160 +626,17 @@ export function YouTubeWorkspace({
             </div>
           </div>
         </aside>
-      </div>
-    </div>
-  );
-}
 
-interface ParticipantStripProps {
-  localStream: MediaStream | null;
-  peers: Map<string, Peer>;
-  isVideoEnabled: boolean;
-  isAudioEnabled: boolean;
-  localIsSpeaking: boolean;
-  peerAudioStatuses: Map<string, PeerAudioStatus>;
-}
+        <button
+          onClick={() => setIsSearchPanelOpen((prev) => !prev)}
+          className="fixed bottom-24 right-4 z-50 inline-flex h-11 w-11 items-center justify-center border-2 border-black bg-black text-white shadow-[4px_4px_0_0_#000] transition-colors hover:bg-white hover:text-black xl:hidden"
+          aria-expanded={isSearchPanelOpen}
+          aria-label={isSearchPanelOpen ? 'Close search drawer' : 'Open search drawer'}
+          title={isSearchPanelOpen ? 'Hide search drawer' : 'Show search drawer'}
+        >
+          {isSearchPanelOpen ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
 
-function ParticipantStrip({
-  localStream,
-  peers,
-  isVideoEnabled,
-  isAudioEnabled,
-  localIsSpeaking,
-  peerAudioStatuses,
-}: ParticipantStripProps) {
-  return (
-    <div className="border-t-2 border-black bg-[#ebe4d7] px-4 py-3">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-black/70">Room Cameras</p>
-        <p className="text-[11px] font-mono uppercase text-black/50">{peers.size + 1} participants</p>
-      </div>
-      <div className="flex gap-3 overflow-x-auto pb-1">
-        <MiniLocalTile
-          stream={localStream}
-          isVideoEnabled={isVideoEnabled}
-          isAudioEnabled={isAudioEnabled}
-          isSpeaking={localIsSpeaking}
-        />
-        {Array.from(peers.values()).map((peer) => (
-          <MiniPeerTile
-            key={peer.id}
-            peer={peer}
-            audioStatus={peerAudioStatuses.get(peer.id)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MiniLocalTile({
-  stream,
-  isVideoEnabled,
-  isAudioEnabled,
-  isSpeaking,
-}: {
-  stream: MediaStream | null;
-  isVideoEnabled: boolean;
-  isAudioEnabled: boolean;
-  isSpeaking: boolean;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (!videoRef.current || !stream) {
-      return;
-    }
-
-    videoRef.current.srcObject = stream;
-    videoRef.current.play().catch((error) => {
-      console.error('[YouTubeWorkspace] Failed to play local strip preview', error);
-    });
-  }, [stream]);
-
-  return (
-    <MiniTileFrame label="You" isSpeaking={isSpeaking && isAudioEnabled} isMuted={!isAudioEnabled}>
-      {stream && isVideoEnabled ? (
-        <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
-      ) : (
-        <MiniAvatar label="You" />
-      )}
-    </MiniTileFrame>
-  );
-}
-
-function MiniPeerTile({
-  peer,
-  audioStatus,
-}: {
-  peer: Peer;
-  audioStatus?: PeerAudioStatus;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (!videoRef.current || !peer.stream) {
-      return;
-    }
-
-    videoRef.current.srcObject = peer.stream;
-    videoRef.current.play().catch((error) => {
-      console.error('[YouTubeWorkspace] Failed to play peer strip preview', error);
-    });
-  }, [peer.id, peer.stream]);
-
-  const hasVideo = peer.stream
-    ? peer.stream.getVideoTracks().some((track) => track.enabled && track.readyState === 'live')
-    : false;
-
-  return (
-    <MiniTileFrame
-      label={peer.participantId ? `Peer ${peer.participantId.slice(0, 4).toUpperCase()}` : `Peer ${peer.id.slice(0, 4).toUpperCase()}`}
-      isSpeaking={audioStatus?.isSpeaking ?? peer.isSpeaking ?? false}
-      isMuted={audioStatus?.isMuted ?? peer.isMuted ?? false}
-    >
-      {peer.stream && hasVideo ? (
-        <video ref={videoRef} autoPlay playsInline className="h-full w-full object-cover" />
-      ) : (
-        <MiniAvatar label={peer.participantId?.slice(0, 2).toUpperCase() ?? peer.id.slice(0, 2).toUpperCase()} />
-      )}
-    </MiniTileFrame>
-  );
-}
-
-function MiniTileFrame({
-  label,
-  isSpeaking,
-  isMuted,
-  children,
-}: {
-  label: string;
-  isSpeaking: boolean;
-  isMuted: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="relative h-28 w-40 flex-shrink-0 overflow-hidden border-2 bg-white"
-      style={{
-        borderColor: isSpeaking ? '#16a34a' : '#000',
-        boxShadow: isSpeaking ? '0 0 0 3px rgba(22,163,74,0.18)' : 'none',
-      }}
-    >
-      {children}
-      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black px-2 py-1 text-[10px] font-mono uppercase text-white">
-        <span className="truncate">{label}</span>
-        {isMuted && <span className="text-[#ffb4b4]">Muted</span>}
-      </div>
-    </div>
-  );
-}
-
-function MiniAvatar({ label }: { label: string }) {
-  return (
-    <div className="flex h-full w-full items-center justify-center bg-[#f4f4f0]">
-      <div className="flex h-14 w-14 items-center justify-center border-2 border-black bg-white text-sm font-black uppercase">
-        {label.slice(0, 3)}
       </div>
     </div>
   );
