@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Clapperboard, Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Monitor, Users } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Monitor, Users } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Kbd } from '@/components/ui/kbd';
+import { YoutubeIcon } from '@/components/icons/youtube-icon';
 
 interface ControlBarProps {
   isAudioEnabled: boolean;
@@ -204,7 +205,7 @@ export function ControlBar({
                   isYouTubeOpen ? 'bg-black text-white hover:bg-gray-800' : 'bg-white text-black hover:bg-black hover:text-white'
                 }`}
               >
-                <Clapperboard size={20} />
+                <YoutubeIcon />
               </button>
               {!isMobile && (
                 <Kbd className="absolute -bottom-1 -right-1 h-4 min-w-4 text-[9px] px-0.5 bg-white text-black border border-black shadow-none">
