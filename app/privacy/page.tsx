@@ -1,8 +1,27 @@
+import type { Metadata } from 'next'
+import Link from 'next/link'
+
+export const metadata: Metadata = {
+    title: 'Privacy Policy — Leank P2P Communication',
+    description: 'Leank privacy policy: learn how our P2P architecture ensures your communication remains private with zero data storage, no accounts, and no tracking.',
+    openGraph: {
+        title: 'Privacy Policy — Leank P2P Communication',
+        description: 'Leank privacy policy: P2P architecture with zero data storage, no accounts, and no tracking.',
+        url: 'https://leank.space/privacy',
+        type: 'website',
+    },
+    alternates: { canonical: 'https://leank.space/privacy' },
+}
+
 export default function PrivacyPolicy() {
     return (
         <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white pb-20">
-
             <div className="max-w-3xl mx-auto px-6 pt-16">
+                <nav aria-label="Breadcrumb" className="mb-8 text-xs font-bold uppercase tracking-widest text-black/40">
+                    <Link href="/" className="hover:text-black transition-colors">Home</Link>
+                    <span className="mx-2">/</span>
+                    <span className="text-black">Privacy Policy</span>
+                </nav>
                 <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-8">Privacy Policy</h1>
 
                 <div className="border-2 border-black bg-white p-6 md:p-12 space-y-8 font-medium text-black/80 text-base md:text-lg leading-relaxed shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">

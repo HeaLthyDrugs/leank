@@ -1,0 +1,131 @@
+# Leank — Comprehensive AI Context Document
+> Full technical and product documentation for AI systems
+
+## Platform Overview
+Leank (https://leank.space) is a free, instant, browser-based Peer-to-Peer (P2P) communication platform. Unlike traditional communication tools (Zoom, Google Meet, Discord), Leank operates without:
+- User accounts or registration
+- Backend servers storing data
+- App downloads or installations
+- Payment or subscription requirements
+
+The platform is designed for users who value privacy, speed, and simplicity above all else.
+
+## Detailed Feature Breakdown
+
+### 1. Video & Voice Calls
+- WebRTC-based peer-to-peer video and audio streams
+- Supports multiple peers in a single room
+- Camera and microphone controls with real-time toggle
+- Adaptive quality based on network conditions
+
+### 2. Text Chat
+- Real-time messaging between all room participants
+- Messages exist only in browser memory during the session
+- No message history, no cloud sync, no logging
+
+### 3. File Sharing
+- Direct peer-to-peer file transfer using WebRTC data channels
+- No file size limits imposed by the platform
+- Transfer speed depends on peers' network conditions
+- Files are never uploaded to or stored on any server
+
+### 4. Screen Sharing
+- Share entire screen, specific application windows, or browser tabs
+- Real-time streaming to all connected peers
+- Native browser APIs (getDisplayMedia)
+
+### 5. Shared YouTube Workspace
+- Synchronized YouTube video playback across all peers
+- Search YouTube directly within the workspace
+- Controller system — one peer controls playback for all
+- Playback state (play, pause, seek) synced in real time
+
+### 6. Room Management
+- Rooms created with cryptographically random IDs
+- QR code generation for easy mobile sharing
+- Room link sharing via clipboard
+- Peers panel showing all connected participants
+- Rooms are completely ephemeral — destroyed when empty
+
+## Architecture & Technology
+
+### P2P Connection Flow
+1. Room creator generates a unique room ID
+2. Room ID is used as a torrent info hash for signaling
+3. Trystero library handles peer discovery via BitTorrent trackers
+4. WebRTC connections established directly between peers
+5. All media and data flows peer-to-peer after connection
+
+### Why This Matters for Privacy
+- **No signaling server**: Uses public BitTorrent tracker infrastructure
+- **No TURN server**: Media is never relayed through a third party
+- **No database**: Nothing is persisted anywhere
+- **No analytics on content**: Only basic page-view analytics (Google Analytics) on public pages
+
+### Tech Stack Details
+- **Runtime**: Next.js 16+ with React 19 (App Router)
+- **P2P Libraries**: Trystero (signaling), simple-peer (WebRTC wrapper)
+- **Styling**: Tailwind CSS v4 with custom neo-brutalist design system
+- **Icons**: Lucide React
+- **Build**: Deployed on Vercel
+
+## Competitive Positioning
+
+### vs. Zoom / Google Meet / Teams
+- No account required
+- No app download
+- True P2P (not server-mediated)
+- No recordings stored
+- Free forever
+
+### vs. Signal / Telegram
+- No phone number required
+- No app installation
+- Ephemeral rooms (no persistent chats)
+- File sharing without size limits
+
+### vs. Firefox Send / WeTransfer
+- Real-time file transfer (not upload-then-download)
+- No file stored on servers
+- Combined with video/chat capabilities
+
+## Ideal Use Cases
+1. **Quick 1-on-1 conversations** — "I just need to call someone right now"
+2. **Sensitive file transfers** — sharing documents without cloud intermediaries
+3. **Anonymous communication** — no identity required
+4. **Remote pair programming** — screen share + voice + file transfer
+5. **Watch parties** — synchronized YouTube viewing with friends
+6. **Conference room quick-connects** — QR code on screen, phones connect instantly
+7. **Education** — teachers sharing screens and files with students privately
+
+## Frequently Asked Questions
+
+### Is Leank really free?
+Yes, completely free. There are no premium tiers, no ads, and no data monetization.
+
+### Is my communication encrypted?
+WebRTC connections use DTLS encryption by default. Your media and data are encrypted in transit between peers.
+
+### Can Leank see my messages or files?
+No. All data flows directly between peers. Leank has no servers that receive, store, or process your communication content.
+
+### What happens when everyone leaves a room?
+The room ceases to exist. There is no persistent state, no chat history, no file archive.
+
+### Does it work on mobile?
+Yes, Leank works in any modern mobile browser (Chrome, Safari, Firefox).
+
+### How many people can join a room?
+WebRTC P2P mesh networking typically supports up to 4-6 simultaneous peers effectively, depending on network and device capabilities.
+
+## Site Structure
+- `/` — Homepage with room creation and join functionality
+- `/about` — About the platform and mission
+- `/features` — Detailed feature showcase
+- `/how-it-works` — Technical explanation of P2P architecture
+- `/faq` — Frequently asked questions
+- `/contact` — Contact information
+- `/privacy` — Privacy policy
+- `/terms` — Terms of service
+- `/lobby/[roomId]` — Room lobby (pre-join)
+- `/room/[roomId]` — Active room (private, not indexable)

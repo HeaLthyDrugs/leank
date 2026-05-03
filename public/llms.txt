@@ -1,9 +1,61 @@
-# Leank - P2P Secure Communication
+# Leank — Instant Secure P2P Communication Platform
+> https://leank.space
 
-Leank is a lightweight, strictly Peer-to-Peer (P2P) communication application built for instant video calls, voice chat, screen sharing, and file sharing directly inside the browser.
+## What is Leank?
+Leank is a free, open, browser-based Peer-to-Peer (P2P) communication platform. It enables instant video calls, voice chat, screen sharing, file sharing, text messaging, and shared YouTube watch sessions — all without signups, downloads, or backend servers.
 
-## Features
-- **Zero Backend**: Data is streamed user-to-user utilizing WebRTC and simple-peer. Nothing is recorded or stored on any server.
-- **No Sign-up**: Sessions are created ad-hoc with securely generated room IDs.
-- **Minimalist Neo-Brutalist UI**: Focus on severe, high-contrast, black-and-white functional elements with zero rounded edges.
-- **Web Technologies**: Next.js (React), Tailwind CSS v4, Lucide React (Icons).
+## Core Value Proposition
+- **Zero accounts required** — start communicating in seconds
+- **Peer-to-peer architecture** — data flows directly between users, never through a central server
+- **End-to-end privacy** — no recordings, no logs, no data retention
+- **Browser-native** — works in any modern browser on any device
+
+## Key Features
+1. **Video & Voice Calls** — High-quality WebRTC-based P2P video and audio communication
+2. **Instant Messaging** — Real-time text chat with no message history stored on servers
+3. **Fast File Transfer** — Share files of any size directly between peers with no upload limits
+4. **Screen Sharing** — Share your screen with connected peers in real time
+5. **Shared YouTube Workspace** — Watch YouTube videos together with synchronized playback
+6. **QR Code Room Sharing** — Instantly share room links via QR codes
+
+## How It Works
+1. A user creates a room — generating a unique, secure room ID
+2. The room link or ID is shared with peers
+3. Peers join the room and a direct WebRTC connection is established
+4. All communication (video, audio, chat, files) flows P2P — no intermediary servers
+
+## Technology Stack
+- **Framework**: Next.js (React) with App Router
+- **P2P Layer**: WebRTC via Trystero + simple-peer
+- **Signaling**: Torrent-based signaling (no centralized signaling server)
+- **Styling**: Tailwind CSS v4
+- **Icons**: Lucide React
+- **Design**: Neo-brutalist, high-contrast, black-and-white UI
+
+## Use Cases
+- Quick private conversations without creating accounts
+- Sharing sensitive files without uploading to cloud services
+- Remote collaboration with screen sharing
+- Watch parties with synchronized YouTube playback
+- Anonymous communication in temporary rooms
+
+## Privacy & Security
+- No user accounts or personal data collection
+- No backend database — zero data persistence
+- P2P connections via WebRTC with DTLS encryption
+- STUN servers used only for NAT traversal (connection handshake), never for relaying content
+- Rooms are ephemeral — destroyed when all participants leave
+
+## Pages
+- Homepage: https://leank.space
+- About: https://leank.space/about
+- Features: https://leank.space/features
+- How It Works: https://leank.space/how-it-works
+- FAQ: https://leank.space/faq
+- Contact: https://leank.space/contact
+- Privacy Policy: https://leank.space/privacy
+- Terms of Service: https://leank.space/terms
+
+## Contact
+- Website: https://leank.space
+- Developer: https://mnsh.online

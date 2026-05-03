@@ -10,46 +10,64 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://leank.online"),
-  title: "Leank - Instant Secure Chat and File Sharing Rooms",
+  metadataBase: new URL("https://leank.space"),
+  title: {
+    default: "Leank — Instant Secure P2P Chat, Video Calls & File Sharing",
+    template: "%s | Leank",
+  },
   description:
-    "Create secure real-time rooms for chat, video calls, YouTube watch sessions, and fast file sharing in your browser with no signups or downloads required.",
+    "Create secure real-time rooms for chat, video calls, YouTube watch sessions, and fast file sharing in your browser — no signups, no downloads, completely peer-to-peer.",
   keywords: [
-    "instant chat",
-    "share files online",
+    "P2P chat",
+    "peer to peer communication",
+    "instant video calls",
     "no signup chat",
-    "browser chat",
+    "browser video call",
     "secure messaging",
     "temporary chat room",
     "fast file transfer",
     "private communication",
-    "real-time chat",
-    "anonymous chat"
+    "WebRTC chat",
+    "anonymous chat",
+    "peer to peer file sharing",
+    "free video calls",
+    "no download video call",
+    "encrypted chat",
+    "share files online",
+    "P2P video call",
+    "browser chat room",
   ],
   openGraph: {
-    title: "Leank - Instant Secure Chat and File Sharing Rooms",
+    title: "Leank — Instant Secure P2P Chat, Video Calls & File Sharing",
     description:
-      "Create secure real-time rooms for chat, video calls, YouTube watch sessions, and fast file sharing in your browser with no signups or downloads required.",
-    url: "https://leank.online",
+      "Create secure real-time rooms for chat, video calls, YouTube watch sessions, and fast file sharing in your browser — no signups, no downloads, completely peer-to-peer.",
+    url: "https://leank.space",
     siteName: "Leank",
     type: "website",
+    locale: "en_US",
     images: [
       {
         url: "https://assets.mnsh.online/work/leank-p2p-communication/home.png",
         width: 1200,
         height: 630,
-        alt: "Leank home interface for secure chat, calls, and file sharing",
+        alt: "Leank — Instant P2P video calls, chat, and file sharing",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Leank - Instant Secure Chat and File Sharing Rooms",
+    title: "Leank — Instant Secure P2P Chat, Video Calls & File Sharing",
     description:
-      "Create secure real-time rooms for chat, video calls, YouTube watch sessions, and fast file sharing in your browser with no signups or downloads required.",
+      "Create secure real-time rooms for chat, video calls, YouTube watch sessions, and fast file sharing — no signups, no downloads, completely P2P.",
     images: [
       "https://assets.mnsh.online/work/leank-p2p-communication/home.png",
     ],
+  },
+  alternates: {
+    canonical: "https://leank.space",
+    types: {
+      "application/rss+xml": "https://leank.space/feed.xml",
+    },
   },
   manifest: "/favicons/site.webmanifest",
   icons: {
@@ -67,6 +85,7 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Leank",
   },
+  category: "technology",
   other: {
     "msapplication-TileColor": "#000000",
   },
@@ -92,6 +111,53 @@ export default function RootLayout({
 
             gtag('config', 'G-JX1C4Q4RES');
           `}
+        </Script>
+        <Script id="structured-data" type="application/ld+json" strategy="beforeInteractive">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "WebApplication",
+                "name": "Leank",
+                "url": "https://leank.space",
+                "description": "Free, browser-based peer-to-peer communication platform for instant video calls, chat, file sharing, and YouTube watch sessions.",
+                "applicationCategory": "CommunicationApplication",
+                "operatingSystem": "Any",
+                "browserRequirements": "Requires a modern web browser with WebRTC support",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "0",
+                  "priceCurrency": "USD"
+                },
+                "featureList": [
+                  "Peer-to-peer video calls",
+                  "Real-time text chat",
+                  "File sharing without size limits",
+                  "Screen sharing",
+                  "Synchronized YouTube workspace",
+                  "QR code room sharing"
+                ],
+                "screenshot": "https://assets.mnsh.online/work/leank-p2p-communication/home.png"
+              },
+              {
+                "@type": "Organization",
+                "name": "Leank",
+                "url": "https://leank.space",
+                "logo": "https://leank.space/favicons/android-chrome-512x512.png",
+                "sameAs": []
+              },
+              {
+                "@type": "WebSite",
+                "name": "Leank",
+                "url": "https://leank.space",
+                "potentialAction": {
+                  "@type": "SearchAction",
+                  "target": "https://leank.space/?room={search_term_string}",
+                  "query-input": "required name=search_term_string"
+                }
+              }
+            ]
+          })}
         </Script>
       </head>
       <body
