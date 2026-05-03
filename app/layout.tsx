@@ -79,11 +79,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistMono.variable} font-mono antialiased`}
-      >
+      <head>
         <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+          src="https://www.googletagmanager.com/gtag/js?id=G-JX1C4Q4RES"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -92,9 +90,13 @@ export default function RootLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
 
-            gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+            gtag('config', 'G-JX1C4Q4RES');
           `}
         </Script>
+      </head>
+      <body
+        className={`${geistMono.variable} font-mono antialiased`}
+      >
         <RoomProvider>
           {children}
         </RoomProvider>
