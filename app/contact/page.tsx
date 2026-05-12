@@ -4,10 +4,10 @@ import { Mail, Globe, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Contact — Get in Touch with Leank',
-  description: 'Have questions about Leank? Reach out to us for support, feedback, or partnership inquiries about our P2P communication platform.',
+  description: 'Have questions about Leank? Reach out to me for support, feedback, or any inquiries about this P2P communication platform.',
   openGraph: {
-    title: 'Contact — Get in Touch with Leank',
-    description: 'Have questions about Leank? Reach out to us for support, feedback, or partnership inquiries.',
+    title: 'Contact — Get in Touch',
+    description: 'Have questions about Leank? Reach out to me for support, feedback, or inquiries.',
     url: 'https://leank.space/contact',
     type: 'website',
   },
@@ -26,7 +26,7 @@ export default function ContactPage() {
 
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-6">Contact</h1>
         <p className="text-lg md:text-xl font-medium text-black/70 leading-relaxed mb-12 max-w-2xl">
-          Have a question, feedback, or partnership inquiry? We&apos;d love to hear from you.
+          Have a question, feedback, or just want to say hi? I&apos;d love to hear from you.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-2 border-black mb-12">
@@ -36,16 +36,16 @@ export default function ContactPage() {
             <p className="text-base font-medium text-black/70 leading-relaxed mb-4">
               For support, feedback, or general inquiries.
             </p>
-            <a href="mailto:contact@mnsh.online" className="text-lg font-black underline underline-offset-4 hover:no-underline transition-all">
-              contact@mnsh.online
+            <a href="mailto:manishvishwakarma9960@gmail.com" className="text-lg font-black underline underline-offset-4 hover:no-underline transition-all break-all">
+              manishvishwakarma9960@gmail.com
             </a>
           </div>
 
           <div className="p-8 md:p-12">
             <Globe size={32} strokeWidth={2} className="mb-6" />
-            <h2 className="text-2xl font-black uppercase tracking-tight mb-3">Developer</h2>
+            <h2 className="text-2xl font-black uppercase tracking-tight mb-3">Portfolio</h2>
             <p className="text-base font-medium text-black/70 leading-relaxed mb-4">
-              Built and maintained by the team behind mnsh.online.
+              Built and maintained by Manish Vishwakarma.
             </p>
             <a href="https://mnsh.online" target="_blank" rel="noopener noreferrer" className="text-lg font-black underline underline-offset-4 hover:no-underline transition-all">
               mnsh.online

@@ -74,17 +74,17 @@ export default function AboutPage() {
 
         {/* Mission */}
         <div className="border-2 border-black p-8 md:p-12 mb-12 bg-black/5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <h2 className="text-2xl font-black uppercase tracking-tight mb-4">Our Mission</h2>
+          <h2 className="text-2xl font-black uppercase tracking-tight mb-4">My Mission</h2>
           <p className="text-base md:text-lg font-medium text-black/80 leading-relaxed">
-            We believe private communication should be instant, free, and accessible to everyone.
+            I believe private communication should be instant, free, and accessible to everyone.
             Leank exists to prove that you don&apos;t need accounts, apps, or corporate infrastructure
-            to have a secure, high-quality conversation. We built the simplest possible path from
+            to have a secure, high-quality conversation. I built the simplest possible path from
             &quot;I need to talk to someone&quot; to actually talking — with nothing in between.
           </p>
         </div>
 
         {/* Values Grid */}
-        <h2 className="text-2xl font-black uppercase tracking-tight mb-8">What We Stand For</h2>
+        <h2 className="text-2xl font-black uppercase tracking-tight mb-8">What Leank Stands For</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-2 border-black mb-12">
           {values.map((value, i) => (
             <div
