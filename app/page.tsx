@@ -107,6 +107,13 @@ export default function Home() {
             <Link href="/privacy" className="hover:text-black transition-colors cursor-pointer">Privacy</Link>
             <Link href="/terms" className="hover:text-black transition-colors cursor-pointer">Terms</Link>
           </div>
+
+          <div className="flex flex-wrap items-start gap-x-4 gap-y-2 text-[10px] md:text-xs font-bold text-black/25 uppercase tracking-widest">
+            <Link href="/sitemap.xml" className="hover:text-black/50 transition-colors cursor-pointer">Sitemap</Link>
+            <Link href="/robots.txt" className="hover:text-black/50 transition-colors cursor-pointer">Robots</Link>
+            <Link href="/rss.xml" className="hover:text-black/50 transition-colors cursor-pointer">RSS</Link>
+            <Link href="/llms.txt" className="hover:text-black/50 transition-colors cursor-pointer">LLM</Link>
+          </div>
         </div>
       </div>
     </div>
