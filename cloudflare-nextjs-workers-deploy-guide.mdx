@@ -1,0 +1,152 @@
+---
+title: How to Deploy Next.js on Cloudflare Workers
+description: A simple beginner guide to connect Cloudflare to a Next.js project and deploy it to Cloudflare Workers using Wrangler and OpenNext.
+status: Published
+keywords:
+  - deploy nextjs to cloudflare workers
+  - cloudflare nextjs deployment
+  - nextjs cloudflare workers guide
+  - wrangler deploy nextjs
+  - opennext cloudflare
+---
+
+# How to Deploy Next.js on Cloudflare Workers
+
+If you want to deploy a **Next.js app on Cloudflare Workers**, this guide is the easiest way to do it.
+
+You will use:
+
+- **Next.js**
+- **Cloudflare Workers**
+- **Wrangler CLI**
+- **OpenNext for Cloudflare**
+
+This setup is beginner-friendly and works well for modern Next.js projects.
+
+## What You Need
+
+Before you start, make sure you have:
+
+- a **Next.js project**
+- a **Cloudflare account**
+- **Node.js** installed
+- **Wrangler CLI** installed and logged in
+
+Login command:
+
+```bash
+npx wrangler login
+```
+
+## Step 1: Install Wrangler
+
+If Wrangler is not installed yet, run:
+
+```bash
+npm install -D wrangler
+```
+
+Check it:
+
+```bash
+npx wrangler --version
+```
+
+## Step 2: Install the Cloudflare Adapter
+
+For an existing Next.js project, the simplest method is:
+
+```bash
+npx @opennextjs/cloudflare@latest migrate
+```
+
+This command sets up:
+
+- `wrangler.jsonc`
+- `open-next.config.ts`
+- deploy scripts
+- Cloudflare build support for your Next.js app
+
+## Step 3: Make Sure Your App Builds
+
+Run:
+
+```bash
+npm run build
+```
+
+If your build fails, fix those errors first.  
+Do not deploy before the Next.js production build works.
+
+## Step 4: Preview Locally
+
+Test the Cloudflare version locally:
+
+```bash
+npm run preview
+```
+
+This is helpful because it runs your app closer to the real **Cloudflare Workers runtime**.
+
+## Step 5: Deploy to Cloudflare Workers
+
+Now deploy your Next.js app:
+
+```bash
+npm run deploy
+```
+
+Or directly with Wrangler if needed:
+
+```bash
+npx wrangler deploy
+```
+
+After deployment, Cloudflare gives you a `workers.dev` URL.
+
+Example:
+
+```txt
+https://your-app-name.your-account.workers.dev
+```
+
+## Important Tip
+
+If your project uses caching, images, or extra bindings, Cloudflare may also create or expect:
+
+- an **R2 bucket**
+- an **Images binding**
+- a **Worker self-reference binding**
+
+Most of this is handled automatically by the OpenNext migration.
+
+## Why Use Cloudflare Workers for Next.js?
+
+- fast global deployment
+- simple CLI-based workflow
+- good performance at the edge
+- works well for modern Next.js apps
+
+## Final Commands
+
+```bash
+npx wrangler login
+npx @opennextjs/cloudflare@latest migrate
+npm run build
+npm run preview
+npm run deploy
+```
+
+## Conclusion
+
+To **connect Cloudflare to a Next.js project** and **deploy to Cloudflare Workers**, you mainly need Wrangler, the OpenNext Cloudflare adapter, and a clean production build.
+
+If you are a beginner, follow this order:
+
+1. login to Cloudflare
+2. run the migration
+3. test the build
+4. preview locally
+5. deploy
+
+That is the simplest way to deploy **Next.js to Cloudflare Workers** without getting lost in setup.
