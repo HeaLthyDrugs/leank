@@ -171,7 +171,7 @@ export function MediaPreview({ onPreferencesChange }: MediaPreviewProps) {
   if (isInitializing) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[200px] border-2 border-dashed border-gray-300 p-6 text-center">
-        <div className="w-8 h-8 border-2 border-black border-t-transparent animate-spin mb-3" />
+        {/* <div className="w-8 h-8 border-2 border-black border-t-transparent animate-spin mb-3" /> */}
         <p className="text-xs font-mono text-gray-500 uppercase">Accessing devices...</p>
       </div>
     );
