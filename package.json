@@ -5,7 +5,7 @@
   "description": "P2P video calls, chat, and file sharing platform",
   "author": "LeanK Team",
   "scripts": {
-    "build": "next build",
+    "build": "next build --webpack",
     "dev": "next dev",
     "start": "next start",
     "lint": "eslint",
