@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { RoomProvider } from "@/contexts/RoomContext";
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
       "application/rss+xml": "https://leank.space/feed.xml",
     },
   },
-  manifest: "/favicons/site.webmanifest",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
       { url: "/favicons/favicon.ico", sizes: "any" },
@@ -89,6 +89,11 @@ export const metadata: Metadata = {
   other: {
     "msapplication-TileColor": "#000000",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
